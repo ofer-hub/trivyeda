@@ -1,0 +1,71 @@
+.podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0 0;
+  direction: rtl;
+}
+
+.podium__place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.podium__crown {
+  font-size: 1.5rem;
+  animation: bounce-crown 1.2s infinite;
+}
+
+.podium__avatar {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.podium__name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.podium__score {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.podium__bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  border-radius: 8px 8px 0 0;
+  font-size: 1.4rem;
+}
+
+.podium__bar--1 {
+  height: 100px;
+  background: linear-gradient(180deg, #fcd34d, #f59e0b);
+}
+
+.podium__bar--2 {
+  height: 70px;
+  background: linear-gradient(180deg, #e2e8f0, #94a3b8);
+}
+
+.podium__bar--3 {
+  height: 50px;
+  background: linear-gradient(180deg, #fed7aa, #f97316);
+}
+
+@keyframes bounce-crown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}

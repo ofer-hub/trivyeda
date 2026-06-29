@@ -1,0 +1,43 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  direction: rtl;
+}
+
+.logo__icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.logo__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.logo__name {
+  font-weight: 900;
+  background: linear-gradient(135deg, #1a73e8, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.logo__slogan {
+  font-size: 0.75em;
+  color: #64748b;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.logo--sm .logo__icon { font-size: 1.5rem; }
+.logo--sm .logo__name { font-size: 1.2rem; }
+
+.logo--md .logo__icon { font-size: 2rem; }
+.logo--md .logo__name { font-size: 1.6rem; }
+
+.logo--lg .logo__icon { font-size: 3rem; }
+.logo--lg .logo__name { font-size: 2.4rem; }
+.logo--lg .logo__slogan { font-size: 1rem; }

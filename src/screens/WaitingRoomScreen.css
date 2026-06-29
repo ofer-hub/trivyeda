@@ -1,0 +1,209 @@
+.waiting-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #f0f9ff 0%, #faf5ff 100%);
+  direction: rtl;
+}
+
+.waiting-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: white;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.waiting-topic {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.waiting-topic__label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.waiting-topic__value {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1e293b;
+  background: #e0f2fe;
+  padding: 0.2rem 0.6rem;
+  border-radius: 8px;
+}
+
+.waiting-main {
+  flex: 1;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.join-info {
+  display: flex;
+  justify-content: center;
+}
+
+.join-code-box {
+  text-align: center;
+  padding: 1.5rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.join-code-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+}
+
+.join-code {
+  font-size: clamp(2rem, 10vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: #1a73e8;
+  margin: 0;
+  direction: ltr;
+}
+
+.participants-section {
+  background: white;
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.participants-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.participants-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+}
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.participant-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 0.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  position: relative;
+  animation: pop-in 0.3s ease;
+}
+
+.participant-card--host {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.participant-card__avatar {
+  font-size: 2rem;
+}
+
+.participant-card__name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #374151;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90px;
+}
+
+.participant-card__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #f59e0b;
+  color: white;
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+}
+
+.host-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.game-info-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.chip {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.3rem 0.8rem;
+  border-radius: 99px;
+}
+
+.waiting-hint {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
+  text-align: center;
+}
+
+.participant-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: #64748b;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.waiting-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #1a73e8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}

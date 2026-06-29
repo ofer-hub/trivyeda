@@ -1,0 +1,188 @@
+/* טריווידע — סגנונות גלובליים */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --font-hebrew: 'Segoe UI', 'Arial Hebrew', 'David', Arial, sans-serif;
+  font-family: var(--font-hebrew);
+  font-size: 16px;
+  line-height: 1.5;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #f8fafc;
+  direction: rtl;
+  font-family: var(--font-hebrew);
+  color: #1e293b;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* כפתורים גלובליים */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-hebrew);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+  direction: rtl;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, #1a73e8, #1557b0);
+  color: white;
+  border-color: #1557b0;
+  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.3);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1557b0, #0d47a1);
+  box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn--secondary {
+  background: white;
+  color: #1a73e8;
+  border-color: #1a73e8;
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #374151;
+}
+
+.btn--xl {
+  padding: 1rem 2rem;
+  font-size: 1.15rem;
+  border-radius: 16px;
+  width: 100%;
+}
+
+.btn--sm {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  border-radius: 10px;
+}
+
+/* שדות טופס גלובליים */
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: var(--font-hebrew);
+  background: white;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  direction: rtl;
+  text-align: right;
+  color: #1e293b;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+}
+
+.form-input::placeholder {
+  color: #94a3b8;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #374151;
+  display: block;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* כפתור חזרה */
+.btn-back {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+  line-height: 1;
+  font-family: var(--font-hebrew);
+}
+
+.btn-back:hover {
+  background: #f1f5f9;
+  color: #374151;
+}
+
+/* Utility */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-hebrew);
+  line-height: 1.2;
+}
+
+button {
+  font-family: var(--font-hebrew);
+}
+
+input, textarea, select {
+  font-family: var(--font-hebrew);
+}
+
+/* Scrollbar עדין */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 99px;
+}

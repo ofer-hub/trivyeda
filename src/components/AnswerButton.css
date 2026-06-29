@@ -1,0 +1,84 @@
+.answer-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 3px solid var(--btn-border);
+  border-radius: 14px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: right;
+  direction: rtl;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.2s ease;
+  position: relative;
+  min-height: 64px;
+}
+
+.answer-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.answer-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.answer-btn__icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  order: 2;
+}
+
+.answer-btn__text {
+  flex: 1;
+  order: 1;
+}
+
+.answer-btn__badge {
+  position: absolute;
+  left: 1rem;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+/* מצב: נבחר (ממתין לחשיפה) */
+.answer-btn--selected {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 4px var(--btn-border), 0 8px 24px rgba(0,0,0,0.15);
+  cursor: default;
+}
+
+/* מצב: נכון */
+.answer-btn--correct {
+  background: #dcfce7 !important;
+  border-color: #16a34a !important;
+  color: #14532d !important;
+  cursor: default;
+  animation: pulse-correct 0.4s ease;
+}
+
+/* מצב: שגוי */
+.answer-btn--wrong {
+  background: #fee2e2 !important;
+  border-color: #ef4444 !important;
+  color: #7f1d1d !important;
+  cursor: default;
+  opacity: 0.8;
+}
+
+/* מצב: עמום (שאר התשובות בחשיפה) */
+.answer-btn--dimmed {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@keyframes pulse-correct {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}

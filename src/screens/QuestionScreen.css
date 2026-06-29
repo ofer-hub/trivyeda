@@ -1,0 +1,110 @@
+.question-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 100%);
+  direction: rtl;
+  color: white;
+}
+
+.question-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+}
+
+.question-progress {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: clamp(0.72rem, 2.2vw, 0.85rem);
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  overflow: hidden;
+}
+
+.question-progress__bar {
+  height: 6px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.question-progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+.answered-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.answered-count__label {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+}
+
+.question-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.25rem 2rem;
+  max-width: 780px;
+  width: 100%;
+  margin: 0 auto;
+  gap: 1.5rem;
+}
+
+.question-card {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.question-text {
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  font-weight: 800;
+  line-height: 1.4;
+  margin: 0;
+  color: white;
+}
+
+.answers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+}
+
+@media (max-width: 480px) {
+  .answers-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.answered-feedback {
+  text-align: center;
+  padding: 0.75rem 1rem;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6ee7b7;
+}
