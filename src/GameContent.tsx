@@ -57,6 +57,8 @@ export function GameContent({
   const [screen, setScreen] = useState<AppScreen>('home');
   const [selectedTopic, setSelectedTopic] = useState('');
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Prevents duplicate host-action calls from rapid clicks
+  const pendingActionRef = useRef(false);
 
   const isHost = game?.hostUserId === currentUserId;
   const isAutoAdvance = game?.settings.questionAdvanceMode === 'auto';
@@ -72,14 +74,26 @@ export function GameContent({
     };
   }, []);
 
-  // Participant: auto-transition from waiting room once host starts the game
+  // Page-refresh recovery: if a game appears while we're still on 'home', navigate to the
+  // correct screen. This fires when the Firebase listener reconnects after a refresh.
+  useEffect(() => {
+    if (!game || screen !== 'home') return;
+    if (game.status === 'waiting') {
+      setScreen('waiting');
+    } else {
+      // question / reveal / leaderboard / finished are all handled by game.status
+      setScreen('playing');
+    }
+  }, [game, screen]);
+
+  // Participant: auto-transition from waiting room once the host starts the game
   useEffect(() => {
     if (screen === 'waiting' && gameStatus === 'question') {
       setScreen('playing');
     }
   }, [screen, gameStatus]);
 
-  // Auto-advance: reveal → leaderboard
+  // Auto-advance: reveal → leaderboard (host only)
   useEffect(() => {
     if (!game || gameStatus !== 'reveal' || !isAutoAdvance || !isHost) return;
     autoAdvanceTimerRef.current = setTimeout(() => {
@@ -90,7 +104,7 @@ export function GameContent({
     };
   }, [gameId, gameStatus, gameQuestionIndex, isAutoAdvance, isHost, showLeaderboard, game]);
 
-  // Auto-advance: leaderboard → next question
+  // Auto-advance: leaderboard → next question (host only)
   useEffect(() => {
     if (!game || gameStatus !== 'leaderboard' || !isAutoAdvance || !isHost) return;
     const isLast = (gameQuestionIndex ?? 0) >= gameQuestionCount - 1;
@@ -102,6 +116,17 @@ export function GameContent({
       if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
     };
   }, [gameId, gameStatus, gameQuestionIndex, gameQuestionCount, isAutoAdvance, isHost, nextQuestion, game]);
+
+  // Wraps an async host action to prevent duplicate calls from rapid double-clicks
+  function withPendingGuard(fn: () => void | Promise<void>): () => void {
+    return () => {
+      if (pendingActionRef.current) return;
+      pendingActionRef.current = true;
+      void Promise.resolve(fn()).finally(() => {
+        pendingActionRef.current = false;
+      });
+    };
+  }
 
   async function handleCreateGame(topic: string, settings: Partial<GameSettings>) {
     try {
@@ -117,14 +142,14 @@ export function GameContent({
       await joinByCode(code, nickname, avatar);
       setScreen('waiting');
     } catch {
-      // error shown via hook's error state
+      // error shown via hook's error state (JoinScreen reads it)
     }
   }
 
-  async function handleStartGame() {
+  const handleStartGame = withPendingGuard(async () => {
     await Promise.resolve(startGame());
     setScreen('playing');
-  }
+  });
 
   function handleAnswer(answerIndex: number, questionStartTime: number) {
     void submitAnswer(currentUserId, answerIndex, questionStartTime);
@@ -132,23 +157,21 @@ export function GameContent({
 
   function handleTimeUp(questionStartTime: number) {
     void Promise.resolve(simulateBotAnswers(questionStartTime)).then(() => {
-      setTimeout(() => void revealAnswer(), 300);
+      setTimeout(withPendingGuard(() => revealAnswer()), 300);
     });
   }
 
-  function handleRevealNext() {
-    void showLeaderboard();
-  }
+  const handleRevealNext = withPendingGuard(() => showLeaderboard());
 
-  function handleLeaderboardNext() {
+  const handleLeaderboardNext = withPendingGuard(() => {
     if (!game) return;
     const isLast = game.currentQuestionIndex >= game.questions.length - 1;
     if (isLast) {
-      void finishGame();
+      return finishGame();
     } else {
-      void nextQuestion();
+      return nextQuestion();
     }
-  }
+  });
 
   async function handlePlayAgain() {
     if (!game) return;
@@ -236,7 +259,7 @@ export function GameContent({
       <WaitingRoomScreen
         game={game}
         currentUserId={currentUserId}
-        onStartGame={() => void handleStartGame()}
+        onStartGame={handleStartGame}
         onAddDemoParticipant={addParticipant}
       />
     );

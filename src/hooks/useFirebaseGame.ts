@@ -13,6 +13,10 @@ import type {
   LeaderboardEntry,
 } from '../types/game';
 
+// ---- session storage keys (for page-refresh recovery) ----
+const SS_GAME_ID = 'tvd_gameId';
+const SS_USER_ID = 'tvd_userId';
+
 // ---- helpers ----
 
 function generateId(): string {
@@ -33,6 +37,12 @@ const DEFAULT_SETTINGS: GameSettings = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildQuestions(questionsPublic: any, answersPrivate: any): QuestionFull[] {
+  // TODO [Security — before Production]:
+  // correctIndex is loaded from answersPrivate on ALL clients, including participants.
+  // In production this should only be sent to the host, or sent to all clients only
+  // after status changes to 'reveal'. This requires either Cloud Functions
+  // (restricted) or a two-step fetch (questionsPublic during 'question', answersPrivate
+  // only after 'reveal'). For MVP we accept this limitation.
   if (!questionsPublic) return [];
   return Object.entries(questionsPublic as Record<string, unknown>)
     .sort(([a], [b]) => parseInt(a) - parseInt(b))
@@ -99,32 +109,15 @@ export function useFirebaseGame() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>(() => generateId());
-  const [currentGameId, setCurrentGameId] = useState<string | null>(null);
 
   const listenerUnsubRef = useRef<(() => void) | null>(null);
   const questionsRef = useRef<QuestionFull[]>([]);
   const questionStartedAtRef = useRef<number>(0);
+  // Ref is kept in sync with the state to avoid stale closures in callbacks
   const currentGameIdRef = useRef<string | null>(null);
 
-  // Keep ref in sync with state
-  useEffect(() => {
-    currentGameIdRef.current = currentGameId;
-  }, [currentGameId]);
-
-  // Auth listener — keep currentUserId in sync
-  useEffect(() => {
-    return onAuthChange((uid) => {
-      if (uid) setCurrentUserId(uid);
-    });
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (listenerUnsubRef.current) listenerUnsubRef.current();
-    };
-  }, []);
-
+  // Attach a Firebase listener for the given game.
+  // Declared as function (not arrow) so it is hoisted and usable in useEffect below.
   function attachListener(gameId: string) {
     if (listenerUnsubRef.current) listenerUnsubRef.current();
     listenerUnsubRef.current = onValue(ref(db, `games/${gameId}`), (snapshot) => {
@@ -141,6 +134,32 @@ export function useFirebaseGame() {
       setIsLoading(false);
     });
   }
+
+  // Cleanup listener on unmount
+  useEffect(() => {
+    return () => {
+      if (listenerUnsubRef.current) listenerUnsubRef.current();
+    };
+  }, []);
+
+  // Auth state change — also used for page-refresh session recovery
+  useEffect(() => {
+    return onAuthChange((uid) => {
+      if (!uid) return;
+      setCurrentUserId(uid);
+
+      // Session recovery: if we have a stored gameId in sessionStorage and no active game yet,
+      // re-attach the listener so the participant/host can continue after a page refresh.
+      if (!currentGameIdRef.current) {
+        const storedGameId = sessionStorage.getItem(SS_GAME_ID);
+        const storedUserId = sessionStorage.getItem(SS_USER_ID);
+        if (storedGameId && storedUserId === uid) {
+          currentGameIdRef.current = storedGameId;
+          attachListener(storedGameId);
+        }
+      }
+    });
+  }, []);
 
   // ---- createGame (host flow) ----
   const createGame = useCallback(
@@ -211,8 +230,14 @@ export function useFirebaseGame() {
           [`gameCodes/${joinCode}`]: { gameId },
         });
 
+        // Update ref immediately — don't wait for the useEffect to sync state→ref
+        currentGameIdRef.current = gameId;
         questionsRef.current = questions;
-        setCurrentGameId(gameId);
+
+        // Persist session so the host can recover after a page refresh
+        sessionStorage.setItem(SS_GAME_ID, gameId);
+        sessionStorage.setItem(SS_USER_ID, uid);
+
         attachListener(gameId);
 
         const localGame: Game = {
@@ -251,11 +276,22 @@ export function useFirebaseGame() {
       setIsLoading(true);
       setError(null);
       try {
+        // Look up gameId by code
         const codeSnap = await get(ref(db, `gameCodes/${code}`));
         if (!codeSnap.exists()) {
           throw new Error('קוד המשחק לא נמצא. בדוק שהקוד נכון ונסה שוב.');
         }
         const { gameId } = codeSnap.val() as { gameId: string };
+
+        // Check that the game is still in waiting status
+        const statusSnap = await get(ref(db, `games/${gameId}/status`));
+        const gameStatus = statusSnap.val() as string | null;
+        if (gameStatus && gameStatus !== 'waiting') {
+          throw new Error('המשחק כבר התחיל. לא ניתן להצטרף כעת.');
+        }
+        if (gameStatus === null) {
+          throw new Error('המשחק לא נמצא. ייתכן שהסתיים.');
+        }
 
         const user = await ensureSignedIn();
         const uid = user.uid;
@@ -274,7 +310,13 @@ export function useFirebaseGame() {
 
         await set(ref(db, `games/${gameId}/participants/${uid}`), participant);
 
-        setCurrentGameId(gameId);
+        // Update ref immediately
+        currentGameIdRef.current = gameId;
+
+        // Persist session for page-refresh recovery
+        sessionStorage.setItem(SS_GAME_ID, gameId);
+        sessionStorage.setItem(SS_USER_ID, uid);
+
         attachListener(gameId);
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'שגיאה בהצטרפות למשחק';
@@ -287,7 +329,7 @@ export function useFirebaseGame() {
     []
   );
 
-  // ---- addParticipant (demo button in WaitingRoom) ----
+  // ---- addParticipant (demo button in WaitingRoom — host only) ----
   const addParticipant = useCallback(
     async (nickname: string, avatar: string): Promise<string> => {
       const gid = currentGameIdRef.current;
@@ -321,16 +363,18 @@ export function useFirebaseGame() {
     });
   }, []);
 
-  // ---- submitAnswer (participant writes their own answer) ----
+  // ---- submitAnswer (participant writes own answer only) ----
   const submitAnswer = useCallback(
     async (participantId: string, answerIndex: number, _questionStartTime: number) => {
       const gid = currentGameIdRef.current;
       if (!gid) return;
+      // Security note: Firebase rules restrict this path to participantId === auth.uid,
+      // so a participant can only write their own answer.
       await set(ref(db, `games/${gid}/participants/${participantId}/lastAnswer`), {
         answerIndex,
         answeredAt: Date.now(),
-        isCorrect: false, // calculated by host on reveal
-        pointsEarned: 0,
+        isCorrect: false,   // updated by host on revealAnswer
+        pointsEarned: 0,    // updated by host on revealAnswer
       });
     },
     []
@@ -379,23 +423,31 @@ export function useFirebaseGame() {
     [game]
   );
 
-  // ---- revealAnswer (host scores all participants, changes status) ----
+  // ---- revealAnswer (host scores all participants atomically, changes status) ----
   const revealAnswer = useCallback(async () => {
     const gid = currentGameIdRef.current;
     if (!gid || !game) return;
 
-    const question = questionsRef.current[game.currentQuestionIndex];
+    const qIndex = game.currentQuestionIndex;
+    const question = questionsRef.current[qIndex];
     if (!question) return;
 
     const questionStartedAt = questionStartedAtRef.current;
     const totalTimeMs = game.settings.timePerQuestion * 1000;
     const updates: Record<string, unknown> = {};
 
-    Object.values(game.participants).forEach((p) => {
-      if (p.isHost) return;
+    // Per-question analytics counters
+    const nonHostParticipants = Object.values(game.participants).filter((p) => !p.isHost);
+    let totalAnswered = 0;
+    let totalCorrect = 0;
+    let totalWrong = 0;
+    let totalNoAnswer = 0;
+
+    nonHostParticipants.forEach((p) => {
       const ans = p.lastAnswer;
 
       if (!ans || ans.answerIndex === null) {
+        totalNoAnswer++;
         updates[`games/${gid}/participants/${p.id}/lastAnswer`] = {
           answerIndex: null,
           answeredAt: null,
@@ -403,10 +455,14 @@ export function useFirebaseGame() {
           pointsEarned: 0,
         };
       } else {
+        totalAnswered++;
         const isCorrect = ans.answerIndex === question.correctIndex;
         const elapsed = (ans.answeredAt ?? Date.now()) - questionStartedAt;
         const remaining = Math.max(0, totalTimeMs - elapsed);
         const points = calculateScore(isCorrect, remaining, totalTimeMs);
+
+        if (isCorrect) totalCorrect++;
+        else totalWrong++;
 
         updates[`games/${gid}/participants/${p.id}/lastAnswer`] = {
           answerIndex: ans.answerIndex,
@@ -417,6 +473,15 @@ export function useFirebaseGame() {
         updates[`games/${gid}/participants/${p.id}/score`] = (p.score ?? 0) + points;
       }
     });
+
+    // Write per-question analytics
+    updates[`games/${gid}/analyticsPerQuestion/${qIndex}`] = {
+      totalParticipants: nonHostParticipants.length,
+      totalAnswered,
+      totalCorrect,
+      totalWrong,
+      totalNoAnswer,
+    };
 
     updates[`games/${gid}/status`] = 'reveal';
     await update(ref(db), updates);
@@ -450,6 +515,7 @@ export function useFirebaseGame() {
       [`games/${gid}/questionStartedAt`]: Date.now(),
     };
 
+    // Reset lastAnswer for all participants for the new question
     Object.keys(game.participants).forEach((pid) => {
       updates[`games/${gid}/participants/${pid}/lastAnswer`] = null;
     });
@@ -476,12 +542,13 @@ export function useFirebaseGame() {
     questionsRef.current = [];
     questionStartedAtRef.current = 0;
     currentGameIdRef.current = null;
-    setCurrentGameId(null);
+    sessionStorage.removeItem(SS_GAME_ID);
+    sessionStorage.removeItem(SS_USER_ID);
     setGame(null);
     setError(null);
   }, []);
 
-  // ---- setStatus (utility) ----
+  // ---- setStatus (utility — host only) ----
   const setStatus = useCallback(async (status: GameStatus) => {
     const gid = currentGameIdRef.current;
     if (!gid) return;

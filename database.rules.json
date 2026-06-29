@@ -1,43 +1,54 @@
 {
   "rules": {
+    ".read": false,
+    ".write": false,
+
     "games": {
       "$gameId": {
-        // כל משתמש מזוהה (אנונימי) יכול לקרוא את נתוני המשחק
         ".read": "auth != null",
 
-        // רק מנהל המשחק יכול לשנות מטה-דאטה של המשחק (סטטוס, אינדקס שאלה וכו׳)
-        ".write": "auth != null && (data.child('hostUserId').val() === auth.uid || !data.exists())",
+        // כתיבה ברמת המשחק כולו:
+        // יצירה — כל משתמש מזוהה יכול ליצור, אך hostUserId חייב להיות הUID שלו.
+        // עדכון — רק מנהל המשחק יכול להחליף את כל האובייקט.
+        ".write": "auth != null && (!data.exists() ? newData.child('hostUserId').val() === auth.uid : data.child('hostUserId').val() === auth.uid)",
 
         "participants": {
+          ".read": "auth != null",
           "$participantId": {
-            // כל משתתף מזוהה יכול לקרוא
-            ".read": "auth != null",
-            // כל משתתף יכול לכתוב רק את הרשומה שלו; מנהל המשחק יכול לכתוב לכולם
-            ".write": "auth != null && ($participantId === auth.uid || root.child('games/' + $gameId + '/hostUserId').val() === auth.uid)"
+            // משתתף יכול לכתוב רק לעצמו (ורק עם isHost=false).
+            // מנהל המשחק יכול לכתוב לכל משתתף (לצורך demo ועדכון ניקוד).
+            ".write": "auth != null && (($participantId === auth.uid && !newData.child('isHost').val()) || root.child('games/' + $gameId + '/hostUserId').val() === auth.uid)"
           }
         },
 
         "questionsPublic": {
-          // שאלות ציבוריות — כל המשתתפים יכולים לקרוא
           ".read": "auth != null",
-          // רק מנהל המשחק יכול לכתוב
-          ".write": "auth != null && (data.parent().child('hostUserId').val() === auth.uid || !data.parent().exists())"
+          // TODO [Security — before Production]:
+          // כרגע questionsPublic נגיש לכל משתמש מזוהה.
+          // אין צורך להגביל כי answersPublic לא מכיל correctIndex.
+          // רק מנהל המשחק יכול לכתוב.
+          ".write": "auth != null && root.child('games/' + $gameId + '/hostUserId').val() === auth.uid"
         },
 
         "answersPrivate": {
-          // TODO: בייצור — להגביל לקריאה רק כשסטטוס המשחק הוא 'reveal' או למנהל בלבד
-          // כרגע: כל משתמש מזוהה יכול לקרוא (MVP בלבד)
+          // TODO [Security — before Production]:
+          // answersPrivate מכיל correctIndex וחשוף לכל לקוח בשלב ה-MVP.
+          // בייצור: להגביל קריאה לסטטוס 'reveal' בלבד, או לשלוח רק שאלה אחת בכל פעם.
+          // זה דורש Cloud Functions או ארכיטקטורת fetch דו-שלבית.
           ".read": "auth != null",
-          // רק מנהל המשחק יכול לכתוב
-          ".write": "auth != null && (data.parent().child('hostUserId').val() === auth.uid || !data.parent().exists())"
+          ".write": "auth != null && root.child('games/' + $gameId + '/hostUserId').val() === auth.uid"
+        },
+
+        "analyticsPerQuestion": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('games/' + $gameId + '/hostUserId').val() === auth.uid"
         }
       }
     },
 
     "gameCodes": {
-      // כולם יכולים לקרוא קודי משחק (כדי למצוא gameId לפי קוד)
+      // קודי משחק: כל משתמש מזוהה יכול לקרוא (לחיפוש gameId לפי קוד).
       ".read": "auth != null",
-      // רק משתמשים מזוהים יכולים ליצור קודים (בעת יצירת משחק)
       ".write": "auth != null"
     }
   }
