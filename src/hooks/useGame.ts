@@ -303,6 +303,14 @@ export function useGame() {
       }));
   }, [game]);
 
+  // joinByCode — mock mode: ignores the code, just adds local participant
+  const joinByCode = useCallback(
+    async (_code: string, nickname: string, avatar: string): Promise<void> => {
+      addParticipant(nickname, avatar);
+    },
+    [addParticipant]
+  );
+
   return {
     game,
     isLoading,
@@ -310,6 +318,7 @@ export function useGame() {
     currentUserId,
     createGame,
     addParticipant,
+    joinByCode,
     startGame,
     submitAnswer,
     simulateBotAnswers,

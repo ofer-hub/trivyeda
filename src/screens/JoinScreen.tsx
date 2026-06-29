@@ -4,20 +4,28 @@ import { AVATARS } from '../data/avatars';
 import './JoinScreen.css';
 
 interface JoinScreenProps {
-  onJoin: (nickname: string, avatar: string) => void;
+  onJoin: (nickname: string, avatar: string, code: string) => void | Promise<void>;
   onBack: () => void;
   joinCode?: string;
+  error?: string | null;
+  isLoading?: boolean;
 }
 
-export function JoinScreen({ onJoin, onBack, joinCode = '' }: JoinScreenProps) {
+export function JoinScreen({
+  onJoin,
+  onBack,
+  joinCode = '',
+  error,
+  isLoading = false,
+}: JoinScreenProps) {
   const [code, setCode] = useState(joinCode);
   const [nickname, setNickname] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0].emoji);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!nickname.trim() || !code.trim()) return;
-    onJoin(nickname.trim(), selectedAvatar);
+    if (!nickname.trim() || !code.trim() || isLoading) return;
+    void onJoin(nickname.trim(), selectedAvatar, code.trim());
   }
 
   return (
@@ -81,12 +89,18 @@ export function JoinScreen({ onJoin, onBack, joinCode = '' }: JoinScreenProps) {
             <span className="join-preview__name">{nickname || 'שמך כאן'}</span>
           </div>
 
+          {error && (
+            <p style={{ color: '#dc2626', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', margin: 0 }}>
+              ⚠️ {error}
+            </p>
+          )}
+
           <button
             type="submit"
             className="btn btn--primary btn--xl"
-            disabled={!nickname.trim() || code.length < 6}
+            disabled={!nickname.trim() || code.length < 6 || isLoading}
           >
-            🙋 הצטרף למשחק
+            {isLoading ? '⏳ מצטרף...' : '🙋 הצטרף למשחק'}
           </button>
         </form>
       </main>
