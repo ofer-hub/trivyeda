@@ -1,4 +1,3 @@
-import { Logo } from '../components/Logo';
 import { TOPIC_CATEGORIES } from '../data/topics';
 import './HomeScreen.css';
 
@@ -12,17 +11,21 @@ export function HomeScreen({ onCreateGame, onJoinGame, onSelectTopic }: HomeScre
   return (
     <div className="home-screen">
       <header className="home-header">
-        <Logo size="lg" showSlogan />
+        <div className="home-logo">
+          <img src="/albert.jpg" alt="אלברט איינשטיין" className="home-logo__einstein" />
+          <h1 className="home-logo__title">טריווידע</h1>
+          <p className="home-logo__slogan">הטריוויה שממציאה את עצמה</p>
+        </div>
       </header>
 
       <main className="home-main">
         <p className="home-tagline">בחרו נושא. הזמינו חברים. התחילו לשחק.</p>
 
         <div className="home-actions">
-          <button className="btn btn--primary btn--xl" onClick={onCreateGame}>
+          <button className="home-btn home-btn--create" onClick={onCreateGame}>
             🎮 צור משחק חדש
           </button>
-          <button className="btn btn--secondary btn--xl" onClick={onJoinGame}>
+          <button className="home-btn home-btn--join" onClick={onJoinGame}>
             🙋 הצטרף למשחק
           </button>
         </div>
@@ -46,7 +49,7 @@ export function HomeScreen({ onCreateGame, onJoinGame, onSelectTopic }: HomeScre
       </main>
 
       <footer className="home-footer">
-        <p>טריווידע — הטריוויה שממציאה את עצמה 🧠</p>
+        <p>טריווידע — פרויקט OferApps</p>
       </footer>
     </div>
   );
