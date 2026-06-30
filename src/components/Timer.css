@@ -5,22 +5,20 @@
   justify-content: center;
 }
 
-.timer--sm { width: 56px; height: 56px; }
-.timer--md { width: 80px; height: 80px; }
+.timer--sm { width: 56px;  height: 56px; }
+.timer--md { width: 80px;  height: 80px; }
 .timer--lg { width: 110px; height: 110px; }
 
 .timer__svg {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   transform: rotate(-90deg);
 }
 
 .timer__track {
   fill: none;
-  stroke: #e2e8f0;
+  stroke: rgba(255, 255, 255, 0.1);
   stroke-width: 8;
 }
 
@@ -30,9 +28,9 @@
   stroke-linecap: round;
 }
 
-.timer--green .timer__progress { stroke: #10b981; }
-.timer--yellow .timer__progress { stroke: #f59e0b; }
-.timer--red .timer__progress { stroke: #ef4444; }
+.timer--green  .timer__progress { stroke: #34d399; }
+.timer--yellow .timer__progress { stroke: #fbbf24; }
+.timer--red    .timer__progress { stroke: #f87171; }
 
 .timer__number {
   position: relative;
@@ -44,6 +42,6 @@
 .timer--md .timer__number { font-size: 1.6rem; }
 .timer--lg .timer__number { font-size: 2.2rem; }
 
-.timer--green .timer__number { color: #059669; }
-.timer--yellow .timer__number { color: #d97706; }
-.timer--red .timer__number { color: #dc2626; }
+.timer--green  .timer__number { color: #34d399; }
+.timer--yellow .timer__number { color: #fbbf24; }
+.timer--red    .timer__number { color: #f87171; }

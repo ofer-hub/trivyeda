@@ -9,7 +9,7 @@
   font-family: var(--font-hebrew);
   font-size: 16px;
   line-height: 1.5;
-  color-scheme: light;
+  color-scheme: dark;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -18,10 +18,10 @@
 body {
   margin: 0;
   padding: 0;
-  background: #f8fafc;
+  background: #07071a;
   direction: rtl;
   font-family: var(--font-hebrew);
-  color: #1e293b;
+  color: white;
 }
 
 #root {
@@ -30,7 +30,8 @@ body {
   flex-direction: column;
 }
 
-/* כפתורים גלובליים */
+/* ── כפתורים גלובליים ── */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -50,43 +51,43 @@ body {
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .btn--primary {
-  background: linear-gradient(135deg, #1a73e8, #1557b0);
+  background: linear-gradient(135deg, #1a73e8, #7b2ff7);
   color: white;
-  border-color: #1557b0;
-  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.3);
+  border-color: transparent;
+  box-shadow: 0 0 18px rgba(99, 102, 241, 0.35);
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1557b0, #0d47a1);
-  box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.6);
   transform: translateY(-1px);
 }
 
 .btn--secondary {
-  background: white;
-  color: #1a73e8;
-  border-color: #1a73e8;
+  background: transparent;
+  color: #00e5ff;
+  border-color: rgba(0, 229, 255, 0.5);
 }
 
 .btn--secondary:hover:not(:disabled) {
-  background: #eff6ff;
+  background: rgba(0, 229, 255, 0.07);
+  border-color: rgba(0, 229, 255, 0.8);
   transform: translateY(-1px);
 }
 
 .btn--ghost {
   background: transparent;
-  color: #64748b;
-  border-color: #e2e8f0;
+  color: rgba(200, 220, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .btn--ghost:hover:not(:disabled) {
-  background: #f1f5f9;
-  color: #374151;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(200, 220, 255, 0.85);
 }
 
 .btn--xl {
@@ -102,35 +103,36 @@ body {
   border-radius: 10px;
 }
 
-/* שדות טופס גלובליים */
+/* ── שדות טופס גלובליים ── */
+
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   font-size: 1rem;
   font-family: var(--font-hebrew);
-  background: white;
+  background: rgba(255, 255, 255, 0.06);
   transition: border-color 0.15s, box-shadow 0.15s;
   direction: rtl;
   text-align: right;
-  color: #1e293b;
+  color: white;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+  border-color: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12);
 }
 
 .form-input::placeholder {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.28);
 }
 
 .form-label {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #374151;
+  color: rgba(220, 230, 255, 0.8);
   display: block;
 }
 
@@ -140,49 +142,40 @@ body {
   gap: 0.5rem;
 }
 
-/* כפתור חזרה */
+/* ── כפתור חזרה ── */
+
 .btn-back {
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #64748b;
+  color: rgba(200, 220, 255, 0.6);
   padding: 0.3rem 0.6rem;
   border-radius: 8px;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
   line-height: 1;
   font-family: var(--font-hebrew);
 }
 
 .btn-back:hover {
-  background: #f1f5f9;
-  color: #374151;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
 }
 
-/* Utility */
+/* ── Utility ── */
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-hebrew);
   line-height: 1.2;
 }
 
-button {
-  font-family: var(--font-hebrew);
-}
+button { font-family: var(--font-hebrew); }
+input, textarea, select { font-family: var(--font-hebrew); }
 
-input, textarea, select {
-  font-family: var(--font-hebrew);
-}
-
-/* Scrollbar עדין */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 99px;
 }

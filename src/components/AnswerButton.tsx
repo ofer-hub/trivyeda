@@ -1,10 +1,10 @@
 import './AnswerButton.css';
 
 const ANSWER_COLORS = [
-  { bg: '#e0f2fe', border: '#0284c7', text: '#0c4a6e', icon: '▲' },
-  { bg: '#fef3c7', border: '#d97706', text: '#78350f', icon: '◆' },
-  { bg: '#dcfce7', border: '#16a34a', text: '#14532d', icon: '●' },
-  { bg: '#fce7f3', border: '#db2777', text: '#831843', icon: '■' },
+  { bg: 'rgba(14,165,233,0.14)',  border: '#0ea5e9', text: '#fff', icon: '▲' },
+  { bg: 'rgba(234,179,8,0.14)',   border: '#fbbf24', text: '#fff', icon: '◆' },
+  { bg: 'rgba(34,197,94,0.14)',   border: '#4ade80', text: '#fff', icon: '●' },
+  { bg: 'rgba(236,72,153,0.14)',  border: '#f472b6', text: '#fff', icon: '■' },
 ];
 
 interface AnswerButtonProps {
@@ -32,7 +32,7 @@ export function AnswerButton({ index, text, onClick, disabled, state = 'idle' }:
       <span className="answer-btn__icon">{color.icon}</span>
       <span className="answer-btn__text">{text}</span>
       {state === 'correct' && <span className="answer-btn__badge">✓</span>}
-      {state === 'wrong' && <span className="answer-btn__badge">✗</span>}
+      {state === 'wrong'   && <span className="answer-btn__badge">✗</span>}
     </button>
   );
 }

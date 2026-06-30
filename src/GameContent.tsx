@@ -244,11 +244,12 @@ export function GameContent({
           minHeight: '100dvh',
           direction: 'rtl',
           fontFamily: 'inherit',
+          background: 'linear-gradient(160deg, #07071a 0%, #0d1b3e 50%, #1a0a2e 100%)',
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          {error && <p style={{ color: '#dc2626', fontWeight: 700 }}>{error}</p>}
-          <p style={{ color: '#64748b' }}>טוען...</p>
+          {error && <p style={{ color: '#f87171', fontWeight: 700 }}>{error}</p>}
+          <p style={{ color: 'rgba(200,220,255,0.7)' }}>טוען...</p>
         </div>
       </div>
     );
