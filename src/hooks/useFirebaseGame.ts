@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ref, set, get, update, onValue } from 'firebase/database';
+import { ref, set, get, update, onValue, remove } from 'firebase/database';
 import { db } from '../services/firebase/config';
 import { ensureSignedIn, onAuthChange } from '../services/firebase/authService';
 import { activeQuestionGenerator } from '../services/questionGenerator';
@@ -116,6 +116,7 @@ export function useFirebaseGame() {
   const questionStartedAtRef = useRef<number>(0);
   // Ref is kept in sync with the state to avoid stale closures in callbacks
   const currentGameIdRef = useRef<string | null>(null);
+  const joinCodeRef = useRef<string | null>(null);
 
   // Attach a Firebase listener for the given game.
   // Declared as function (not arrow) so it is hoisted and usable in useEffect below.
@@ -128,6 +129,7 @@ export function useFirebaseGame() {
       if (typeof data.questionStartedAt === 'number') {
         questionStartedAtRef.current = data.questionStartedAt;
       }
+      if (data.code) joinCodeRef.current = data.code as string;
 
       const questions = buildQuestions(data.questionsPublic, data.answersPrivate);
       questionsRef.current = questions;
@@ -233,6 +235,7 @@ export function useFirebaseGame() {
 
         // Update ref immediately — don't wait for the useEffect to sync state→ref
         currentGameIdRef.current = gameId;
+        joinCodeRef.current = joinCode;
         questionsRef.current = questions;
 
         // Persist session so the host can recover after a page refresh
@@ -542,9 +545,18 @@ export function useFirebaseGame() {
       listenerUnsubRef.current();
       listenerUnsubRef.current = null;
     }
+
+    // Delete the entire game node from Firebase — removes all avatarDataUrls and game data.
+    // Called when host clicks "play again", "new game", or "home" from GameOverScreen.
+    const gid = currentGameIdRef.current;
+    const jc = joinCodeRef.current;
+    if (gid) void remove(ref(db, `games/${gid}`));
+    if (jc) void remove(ref(db, `gameCodes/${jc}`));
+
     questionsRef.current = [];
     questionStartedAtRef.current = 0;
     currentGameIdRef.current = null;
+    joinCodeRef.current = null;
     sessionStorage.removeItem(SS_GAME_ID);
     sessionStorage.removeItem(SS_USER_ID);
     setGame(null);

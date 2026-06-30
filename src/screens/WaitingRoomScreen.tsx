@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Logo } from '../components/Logo';
 import { PlayerAvatar } from '../components/PlayerAvatar';
-import { AVATARS } from '../data/avatars';
 import type { Game, Participant } from '../types/game';
 import './WaitingRoomScreen.css';
 
@@ -36,8 +35,7 @@ export function WaitingRoomScreen({
     const usedNames = participants.map((p) => p.nickname);
     const available = DEMO_NAMES.filter((n) => !usedNames.includes(n));
     const name = available[Math.floor(Math.random() * available.length)] || `שחקן${participants.length + 1}`;
-    const avatar = AVATARS[Math.floor(Math.random() * AVATARS.length)].emoji;
-    onAddDemoParticipant(name, avatar);
+    onAddDemoParticipant(name, '');
   }
 
   return (
