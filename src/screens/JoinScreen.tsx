@@ -115,7 +115,6 @@ export function JoinScreen({
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="user"
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
@@ -136,7 +135,7 @@ export function JoinScreen({
           </div>
 
           {error && (
-            <p style={{ color: '#dc2626', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', margin: 0 }}>
+            <p style={{ color: '#f87171', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', margin: 0 }}>
               ⚠️ {error}
             </p>
           )}
