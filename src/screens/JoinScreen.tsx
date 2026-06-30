@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Logo } from '../components/Logo';
-import { AVATARS } from '../data/avatars';
+import { PlayerAvatar } from '../components/PlayerAvatar';
 import { processAvatarImage } from '../utils/imageUtils';
 import './JoinScreen.css';
 
@@ -21,7 +21,6 @@ export function JoinScreen({
 }: JoinScreenProps) {
   const [code, setCode] = useState(joinCode);
   const [nickname, setNickname] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0].emoji);
   const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +46,7 @@ export function JoinScreen({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nickname.trim() || !code.trim() || isLoading) return;
-    void onJoin(nickname.trim(), selectedAvatar, code.trim(), avatarDataUrl ?? undefined);
+    void onJoin(nickname.trim(), '', code.trim(), avatarDataUrl ?? undefined);
   }
 
   return (
@@ -90,23 +89,6 @@ export function JoinScreen({
           </div>
 
           <div className="form-group">
-            <label className="form-label">בחר אווטאר</label>
-            <div className="avatar-grid">
-              {AVATARS.map((av) => (
-                <button
-                  key={av.id}
-                  type="button"
-                  className={`avatar-btn ${selectedAvatar === av.emoji ? 'avatar-btn--selected' : ''}`}
-                  onClick={() => setSelectedAvatar(av.emoji)}
-                  title={av.label}
-                >
-                  {av.emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
             <label className="form-label">
               תמונת פרופיל
               <span className="form-label-optional"> (אופציונלי)</span>
@@ -145,11 +127,11 @@ export function JoinScreen({
           </div>
 
           <div className="join-preview">
-            {avatarDataUrl ? (
-              <img src={avatarDataUrl} alt="" className="join-preview__photo" />
-            ) : (
-              <span className="join-preview__avatar">{selectedAvatar}</span>
-            )}
+            <PlayerAvatar
+              nickname={nickname || '?'}
+              avatarDataUrl={avatarDataUrl ?? undefined}
+              size="md"
+            />
             <span className="join-preview__name">{nickname || 'שמך כאן'}</span>
           </div>
 
