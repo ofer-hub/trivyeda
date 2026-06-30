@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Logo } from '../components/Logo';
 import { AVATARS } from '../data/avatars';
+import { processAvatarImage } from '../utils/imageUtils';
 import './JoinScreen.css';
 
 interface JoinScreenProps {
-  onJoin: (nickname: string, avatar: string, code: string) => void | Promise<void>;
+  onJoin: (nickname: string, avatar: string, code: string, avatarDataUrl?: string) => void | Promise<void>;
   onBack: () => void;
   joinCode?: string;
   error?: string | null;
@@ -21,11 +22,32 @@ export function JoinScreen({
   const [code, setCode] = useState(joinCode);
   const [nickname, setNickname] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0].emoji);
+  const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoError(null);
+    const result = await processAvatarImage(file);
+    if (result) {
+      setAvatarDataUrl(result);
+    } else {
+      setPhotoError('התמונה גדולה מדי. אנא בחר תמונה קטנה יותר.');
+    }
+    e.target.value = '';
+  }
+
+  function handleRemovePhoto() {
+    setAvatarDataUrl(null);
+    setPhotoError(null);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nickname.trim() || !code.trim() || isLoading) return;
-    void onJoin(nickname.trim(), selectedAvatar, code.trim());
+    void onJoin(nickname.trim(), selectedAvatar, code.trim(), avatarDataUrl ?? undefined);
   }
 
   return (
@@ -84,8 +106,50 @@ export function JoinScreen({
             </div>
           </div>
 
+          <div className="form-group">
+            <label className="form-label">
+              תמונת פרופיל
+              <span className="form-label-optional"> (אופציונלי)</span>
+            </label>
+
+            {avatarDataUrl ? (
+              <div className="photo-preview">
+                <img src={avatarDataUrl} alt="תמונת פרופיל" className="photo-preview__img" />
+                <button type="button" className="photo-preview__remove" onClick={handleRemovePhoto}>
+                  ✕ הסר תמונה
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="photo-upload-btn"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                📷 צלם / העלה תמונה
+              </button>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="user"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+
+            {photoError && <p className="photo-error">{photoError}</p>}
+            <p className="photo-privacy">
+              התמונה משמשת רק במהלך המשחק ואינה נשמרת לאחר סיום המשחק.
+            </p>
+          </div>
+
           <div className="join-preview">
-            <span className="join-preview__avatar">{selectedAvatar}</span>
+            {avatarDataUrl ? (
+              <img src={avatarDataUrl} alt="" className="join-preview__photo" />
+            ) : (
+              <span className="join-preview__avatar">{selectedAvatar}</span>
+            )}
             <span className="join-preview__name">{nickname || 'שמך כאן'}</span>
           </div>
 

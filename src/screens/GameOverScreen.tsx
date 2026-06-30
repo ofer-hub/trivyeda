@@ -1,4 +1,5 @@
 import { Podium } from '../components/Podium';
+import { PlayerAvatar } from '../components/PlayerAvatar';
 import { Logo } from '../components/Logo';
 import type { LeaderboardEntry } from '../types/game';
 import './GameOverScreen.css';
@@ -33,7 +34,7 @@ export function GameOverScreen({ entries, topic, onPlayAgain, onNewGame, onHome 
             <div className="winner-banner__crown">👑</div>
             <div className="winner-banner__text">
               <span className="winner-banner__label">יש לנו מנצח!</span>
-              <span className="winner-banner__avatar">{winner.avatar}</span>
+              <PlayerAvatar avatar={winner.avatar} avatarDataUrl={winner.avatarDataUrl} nickname={winner.nickname} size="lg" />
               <span className="winner-banner__name">{winner.nickname}</span>
               <span className="winner-banner__score">{winner.score.toLocaleString()} נקודות</span>
             </div>
@@ -49,7 +50,7 @@ export function GameOverScreen({ entries, topic, onPlayAgain, onNewGame, onHome 
             {rest.map((entry) => (
               <div key={entry.participantId} className="gameover-row">
                 <span className="go-rank">{entry.rank}</span>
-                <span className="go-avatar">{entry.avatar}</span>
+                <PlayerAvatar avatar={entry.avatar} avatarDataUrl={entry.avatarDataUrl} nickname={entry.nickname} size="sm" />
                 <span className="go-name">{entry.nickname}</span>
                 <span className="go-score">{entry.score.toLocaleString()}</span>
               </div>

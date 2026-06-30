@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Podium } from '../components/Podium';
+import { PlayerAvatar } from '../components/PlayerAvatar';
 import type { LeaderboardEntry } from '../types/game';
 import './LeaderboardScreen.css';
 
@@ -63,7 +64,7 @@ export function LeaderboardScreen({
             {rest.map((entry) => (
               <div key={entry.participantId} className="leaderboard-row">
                 <span className="lb-rank">{entry.rank}</span>
-                <span className="lb-avatar">{entry.avatar}</span>
+                <PlayerAvatar avatar={entry.avatar} avatarDataUrl={entry.avatarDataUrl} nickname={entry.nickname} size="sm" />
                 <span className="lb-name">{entry.nickname}</span>
                 <span className="lb-score">{entry.score.toLocaleString()}</span>
               </div>

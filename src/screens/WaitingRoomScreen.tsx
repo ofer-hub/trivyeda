@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Logo } from '../components/Logo';
+import { PlayerAvatar } from '../components/PlayerAvatar';
 import { AVATARS } from '../data/avatars';
 import type { Game, Participant } from '../types/game';
 import './WaitingRoomScreen.css';
@@ -75,7 +76,7 @@ export function WaitingRoomScreen({
           <div className="participants-grid">
             {participants.map((p: Participant) => (
               <div key={p.id} className={`participant-card ${p.isHost ? 'participant-card--host' : ''}`}>
-                <span className="participant-card__avatar">{p.avatar}</span>
+                <PlayerAvatar avatar={p.avatar} avatarDataUrl={p.avatarDataUrl} nickname={p.nickname} size="md" />
                 <span className="participant-card__name">{p.nickname}</span>
                 {p.isHost && <span className="participant-card__badge">מנהל</span>}
               </div>

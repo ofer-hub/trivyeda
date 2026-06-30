@@ -19,7 +19,7 @@ export interface GameHookProps {
   currentUserId: string;
   createGame: (topic: string, settings?: Partial<GameSettings>) => Promise<Game>;
   addParticipant: (nickname: string, avatar: string) => string | Promise<string>;
-  joinByCode: (code: string, nickname: string, avatar: string) => Promise<void>;
+  joinByCode: (code: string, nickname: string, avatar: string, avatarDataUrl?: string) => Promise<void>;
   startGame: () => void | Promise<void>;
   submitAnswer: (
     participantId: string,
@@ -137,9 +137,9 @@ export function GameContent({
     }
   }
 
-  async function handleJoin(nickname: string, avatar: string, code: string) {
+  async function handleJoin(nickname: string, avatar: string, code: string, avatarDataUrl?: string) {
     try {
-      await joinByCode(code, nickname, avatar);
+      await joinByCode(code, nickname, avatar, avatarDataUrl);
       setScreen('waiting');
     } catch {
       // error shown via hook's error state (JoinScreen reads it)

@@ -100,7 +100,7 @@ export function useGame() {
   );
 
   // הוספת משתתף (demo)
-  const addParticipant = useCallback((nickname: string, avatar: string) => {
+  const addParticipant = useCallback((nickname: string, avatar: string, avatarDataUrl?: string) => {
     const participantId = generateId();
     const participant: Participant = {
       id: participantId,
@@ -112,6 +112,7 @@ export function useGame() {
       lastAnswer: null,
       isHost: false,
     };
+    if (avatarDataUrl) participant.avatarDataUrl = avatarDataUrl;
 
     setGame((prev) => {
       if (!prev) return prev;
@@ -298,6 +299,7 @@ export function useGame() {
         participantId: p.id,
         nickname: p.nickname,
         avatar: p.avatar,
+        avatarDataUrl: p.avatarDataUrl,
         score: p.score,
         rank: index + 1,
       }));
@@ -305,8 +307,8 @@ export function useGame() {
 
   // joinByCode — mock mode: ignores the code, just adds local participant
   const joinByCode = useCallback(
-    async (_code: string, nickname: string, avatar: string): Promise<void> => {
-      addParticipant(nickname, avatar);
+    async (_code: string, nickname: string, avatar: string, avatarDataUrl?: string): Promise<void> => {
+      addParticipant(nickname, avatar, avatarDataUrl);
     },
     [addParticipant]
   );

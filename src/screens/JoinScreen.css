@@ -101,3 +101,85 @@
   font-weight: 800;
   color: #1e293b;
 }
+
+.join-preview__photo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Photo upload section */
+.form-label-optional {
+  font-weight: 400;
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+
+.photo-upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #f1f5f9;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.photo-upload-btn:hover {
+  background: #e0f2fe;
+  border-color: #1a73e8;
+  color: #1a73e8;
+}
+
+.photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.photo-preview__img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1a73e8;
+}
+
+.photo-preview__remove {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.photo-preview__remove:hover {
+  background: #fee2e2;
+}
+
+.photo-error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.photo-privacy {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0;
+}

@@ -70,6 +70,7 @@ function buildParticipants(fbParticipants: any): Record<string, Participant> {
       id,
       nickname: data.nickname as string,
       avatar: data.avatar as string,
+      avatarDataUrl: (data.avatarDataUrl as string | undefined) ?? undefined,
       score: (data.score as number) ?? 0,
       joinedAt: data.joinedAt as number,
       isReady: (data.isReady as boolean) ?? true,
@@ -272,7 +273,7 @@ export function useFirebaseGame() {
 
   // ---- joinByCode (participant flow) ----
   const joinByCode = useCallback(
-    async (code: string, nickname: string, avatar: string): Promise<void> => {
+    async (code: string, nickname: string, avatar: string, avatarDataUrl?: string): Promise<void> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -308,6 +309,7 @@ export function useFirebaseGame() {
           lastAnswer: null,
           isHost: false,
         };
+        if (avatarDataUrl) participant.avatarDataUrl = avatarDataUrl;
 
         await set(ref(db, `games/${gameId}/participants/${uid}`), participant);
 
@@ -566,6 +568,7 @@ export function useFirebaseGame() {
         participantId: p.id,
         nickname: p.nickname,
         avatar: p.avatar,
+        avatarDataUrl: p.avatarDataUrl,
         score: p.score,
         rank: index + 1,
       }));

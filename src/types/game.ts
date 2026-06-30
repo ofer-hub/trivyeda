@@ -55,6 +55,7 @@ export interface Participant {
   id: string;
   nickname: string;
   avatar: string;
+  avatarDataUrl?: string;
   score: number;
   joinedAt: number;
   isReady: boolean;
@@ -105,6 +106,7 @@ export interface LeaderboardEntry {
   participantId: string;
   nickname: string;
   avatar: string;
+  avatarDataUrl?: string;
   score: number;
   rank: number;
   previousRank?: number;

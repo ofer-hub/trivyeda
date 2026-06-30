@@ -1,0 +1,24 @@
+/* Photo avatar — circular <img> */
+.player-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.player-avatar--sm { width: 32px; height: 32px; }
+.player-avatar--md { width: 44px; height: 44px; }
+.player-avatar--lg { width: 64px; height: 64px; }
+
+/* Emoji avatar — <span> with appropriate font size */
+.player-avatar-emoji {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.player-avatar-emoji--sm { font-size: 1.4rem; }
+.player-avatar-emoji--md { font-size: 2rem; }
+.player-avatar-emoji--lg { font-size: 3.5rem; }
