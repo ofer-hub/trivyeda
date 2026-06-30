@@ -123,7 +123,7 @@ export function RevealScreen({
 
         {isHost && (
           <button className="btn btn--primary btn--xl reveal-next-btn" onClick={onNext}>
-            {isLastQuestion ? '🏆 ראה דירוג סופי' : '⏭ שאלה הבאה'}
+            {isLastQuestion ? '🏆 ראה דירוג סופי' : '📊 ראה דירוג'}
           </button>
         )}
       </div>
