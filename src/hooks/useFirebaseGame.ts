@@ -276,6 +276,11 @@ export function useFirebaseGame() {
       setIsLoading(true);
       setError(null);
       try {
+        // Ensure authenticated before any Firebase reads
+        const user = await ensureSignedIn();
+        const uid = user.uid;
+        setCurrentUserId(uid);
+
         // Look up gameId by code
         const codeSnap = await get(ref(db, `gameCodes/${code}`));
         if (!codeSnap.exists()) {
@@ -292,10 +297,6 @@ export function useFirebaseGame() {
         if (gameStatus === null) {
           throw new Error('המשחק לא נמצא. ייתכן שהסתיים.');
         }
-
-        const user = await ensureSignedIn();
-        const uid = user.uid;
-        setCurrentUserId(uid);
 
         const participant: Participant = {
           id: uid,
