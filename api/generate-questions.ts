@@ -50,17 +50,19 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const { topic, count, difficulty, audience } = req.body as {
+  const { topic, count: rawCount, difficulty, audience } = req.body as {
     topic: string;
     count: number;
     difficulty: string;
     audience: string;
   };
 
-  if (!topic || !count) {
+  if (!topic || !rawCount) {
     res.status(400).json({ error: 'Missing required fields' });
     return;
   }
+
+  const count = Math.min(Math.max(1, Number(rawCount)), 15);
 
   const prompt = buildPrompt(topic, count, difficulty, audience);
 
@@ -81,6 +83,7 @@ export default async function handler(req: any, res: any) {
 
   if (!geminiRes.ok) {
     const errText = await geminiRes.text();
+    console.error('[generate-questions] Gemini error:', geminiRes.status, errText.slice(0, 300));
     res.status(502).json({ error: 'Gemini API error', details: errText });
     return;
   }
