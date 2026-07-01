@@ -1,3 +1,5 @@
+export const config = { runtime: 'edge' };
+
 const DIFFICULTY_LABELS: Record<string, string> = {
   easy: 'קלה',
   medium: 'בינונית',
@@ -38,31 +40,23 @@ function buildPrompt(topic: string, count: number, difficulty: string, audience:
 ]`;
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
-    res.status(405).end();
-    return;
+    return new Response('Method not allowed', { status: 405 });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
-    return;
+    return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
   }
 
-  const { topic, count: rawCount, difficulty, audience } = req.body as {
-    topic: string;
-    count: number;
-    difficulty: string;
-    audience: string;
-  };
+  const body = await req.json() as { topic: string; count: number; difficulty: string; audience: string };
+  const { topic, difficulty, audience } = body;
+  const count = Math.min(Math.max(1, Number(body.count)), 15);
 
-  if (!topic || !rawCount) {
-    res.status(400).json({ error: 'Missing required fields' });
-    return;
+  if (!topic || !count) {
+    return Response.json({ error: 'Missing required fields' }, { status: 400 });
   }
-
-  const count = Math.min(Math.max(1, Number(rawCount)), 15);
 
   const prompt = buildPrompt(topic, count, difficulty, audience);
 
@@ -84,20 +78,18 @@ export default async function handler(req: any, res: any) {
   if (!geminiRes.ok) {
     const errText = await geminiRes.text();
     console.error('[generate-questions] Gemini error:', geminiRes.status, errText.slice(0, 300));
-    res.status(502).json({ error: 'Gemini API error', details: errText });
-    return;
+    return Response.json({ error: 'Gemini API error' }, { status: 502 });
   }
 
-  const data = await geminiRes.json() as any;
-  const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]';
+  const data = await geminiRes.json() as { candidates: { content: { parts: { text: string }[] } }[] };
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]';
 
   let questions: unknown;
   try {
     questions = JSON.parse(text);
   } catch {
-    res.status(502).json({ error: 'Invalid JSON from Gemini', raw: text });
-    return;
+    return Response.json({ error: 'Invalid JSON from Gemini' }, { status: 502 });
   }
 
-  res.json(questions);
+  return Response.json(questions);
 }
