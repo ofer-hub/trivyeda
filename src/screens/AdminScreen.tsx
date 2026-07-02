@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ref, get, update } from 'firebase/database';
+import { ref, get } from 'firebase/database';
 import { db } from '../services/firebase/config';
 import { ensureSignedIn } from '../services/firebase/authService';
 import './AdminScreen.css';
@@ -7,9 +7,6 @@ import './AdminScreen.css';
 // ← שנה כאן את הסיסמא
 const ADMIN_PIN = '9919';
 
-function topicToKey(topic: string): string {
-  return topic.trim().replace(/[.#$[\]/]/g, '-').replace(/\s+/g, '_').slice(0, 100);
-}
 
 interface GameStat {
   id: string;
@@ -89,38 +86,7 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
       );
 
       const tData = tSnap.val() as Record<string, TopicStat> | null;
-
-      // One-time backfill: if topicStats is empty, scan existing games/ and populate it
-      if (!tData) {
-        const gamesSnap = await get(ref(db, 'games'));
-        const gamesRaw = gamesSnap.val() as Record<string, { topic?: string }> | null;
-        if (gamesRaw) {
-          const counts: Record<string, { topic: string; count: number }> = {};
-          Object.values(gamesRaw).forEach((g) => {
-            if (!g.topic) return;
-            const key = topicToKey(g.topic);
-            if (!counts[key]) counts[key] = { topic: g.topic.trim(), count: 0 };
-            counts[key].count++;
-          });
-          const bfUpdates: Record<string, unknown> = {};
-          const now = Date.now();
-          Object.entries(counts).forEach(([key, { topic, count }]) => {
-            bfUpdates[`topicStats/${key}/topic`] = topic;
-            bfUpdates[`topicStats/${key}/count`] = count;
-            bfUpdates[`topicStats/${key}/lastUsedAt`] = now;
-          });
-          if (Object.keys(bfUpdates).length > 0) {
-            await update(ref(db), bfUpdates);
-            setTopics(Object.values(counts).sort((a, b) => b.count - a.count) as TopicStat[]);
-          } else {
-            setTopics([]);
-          }
-        } else {
-          setTopics([]);
-        }
-      } else {
-        setTopics(Object.values(tData).sort((a, b) => b.count - a.count));
-      }
+      setTopics(tData ? Object.values(tData).sort((a, b) => b.count - a.count) : []);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : 'שגיאה בטעינת הנתונים');
     } finally {
