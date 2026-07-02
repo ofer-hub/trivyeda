@@ -112,6 +112,46 @@
 
 /* form-group and form-label come from index.css */
 
+/* ── Topic field (hero) ── */
+
+.topic-group {
+  gap: 0.5rem;
+}
+
+.topic-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.topic-label__sub {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: rgba(140, 180, 255, 0.55);
+}
+
+.form-input--topic {
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 1rem 1.1rem;
+  border-color: rgba(0, 229, 255, 0.35);
+  background: rgba(0, 229, 255, 0.04);
+  box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
+  animation: topic-glow-pulse 3s ease-in-out infinite;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.form-input--topic:focus {
+  border-color: rgba(0, 229, 255, 0.75);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.15), 0 0 20px rgba(0, 229, 255, 0.12);
+  animation: none;
+}
+
+@keyframes topic-glow-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(0, 229, 255, 0.08); border-color: rgba(0, 229, 255, 0.3); }
+  50%       { box-shadow: 0 0 18px rgba(0, 229, 255, 0.22); border-color: rgba(0, 229, 255, 0.55); }
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

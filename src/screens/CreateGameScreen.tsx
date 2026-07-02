@@ -201,14 +201,17 @@ export function CreateGameScreen({
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">נושא המשחק</label>
+            <div className="form-group topic-group">
+              <label className="form-label topic-label">
+                נושא המשחק
+                <span className="topic-label__sub">היסטוריה, מדע, ספורט, סדרות, מוזיקה... כמעט הכל ✨</span>
+              </label>
               <input
-                className="form-input"
+                className="form-input form-input--topic"
                 type="text"
                 value={topic}
                 onChange={(e) => handleTopicChange(e.target.value)}
-                placeholder="לדוגמה: ארץ ישראל, תנ״ך, ספורט..."
+                placeholder="כל נושא שמעניין אותך"
                 required
                 autoFocus
               />
