@@ -116,12 +116,12 @@ export function WaitingRoomScreen({
             <button
               className="btn btn--primary btn--xl"
               onClick={onStartGame}
-              disabled={nonHostParticipants.length === 0 || game.questions.length === 0}
+              disabled={game.questions.length === 0}
             >
               🚀 התחל משחק
             </button>
             {nonHostParticipants.length === 0 && game.questions.length > 0 && (
-              <p className="waiting-hint">הוסף לפחות משתתף אחד כדי להתחיל</p>
+              <p className="waiting-hint">משחק יחיד — רק אתה. אפשר להוסיף שחקנים דמו.</p>
             )}
             {game.questions.length === 0 && !game.suggestedTopic && (
               <p className="waiting-hint">לא נמצאו שאלות לנושא זה. נסה נושא אחר.</p>

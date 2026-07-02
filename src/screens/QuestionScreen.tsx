@@ -30,10 +30,8 @@ export function QuestionScreen({ game, currentUserId, onAnswer, onTimeUp, isHost
     questionStartRef.current = Date.now();
   }, [game.currentQuestionIndex]);
 
-  const totalParticipants = Object.values(game.participants).filter((p) => !p.isHost).length;
-  const totalAnswered = Object.values(game.participants).filter(
-    (p) => !p.isHost && p.lastAnswer !== null
-  ).length;
+  const totalParticipants = Object.values(game.participants).length;
+  const totalAnswered = Object.values(game.participants).filter((p) => p.lastAnswer !== null).length;
 
   function getButtonState(index: number) {
     if (!hasAnswered) return 'idle';

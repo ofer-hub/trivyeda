@@ -17,7 +17,7 @@ export interface GameHookProps {
   isLoading: boolean;
   error: string | null;
   currentUserId: string;
-  createGame: (topic: string, settings?: Partial<GameSettings>) => Promise<Game>;
+  createGame: (topic: string, settings?: Partial<GameSettings>, hostNickname?: string) => Promise<Game>;
   addParticipant: (nickname: string, avatar: string) => string | Promise<string>;
   joinByCode: (code: string, nickname: string, avatar: string, avatarDataUrl?: string) => Promise<void>;
   startGame: () => void | Promise<void>;
@@ -56,6 +56,7 @@ export function GameContent({
 }: GameHookProps) {
   const [screen, setScreen] = useState<AppScreen>('home');
   const [selectedTopic, setSelectedTopic] = useState('');
+  const [hostNickname, setHostNickname] = useState('');
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Prevents duplicate host-action calls from rapid clicks
   const pendingActionRef = useRef(false);
@@ -128,9 +129,10 @@ export function GameContent({
     };
   }
 
-  async function handleCreateGame(topic: string, settings: Partial<GameSettings>) {
+  async function handleCreateGame(topic: string, settings: Partial<GameSettings>, nickname?: string) {
+    if (nickname !== undefined) setHostNickname(nickname);
     try {
-      await createGame(topic, settings);
+      await createGame(topic, settings, nickname ?? hostNickname);
       setScreen('waiting');
     } catch {
       // error shown via hook's error state

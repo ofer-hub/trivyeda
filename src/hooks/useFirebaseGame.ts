@@ -166,7 +166,7 @@ export function useFirebaseGame() {
 
   // ---- createGame (host flow) ----
   const createGame = useCallback(
-    async (topic: string, settings: Partial<GameSettings> = {}): Promise<Game> => {
+    async (topic: string, settings: Partial<GameSettings> = {}, hostNickname?: string): Promise<Game> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -200,7 +200,7 @@ export function useFirebaseGame() {
 
         const hostParticipant: Participant = {
           id: uid,
-          nickname: 'מנהל המשחק',
+          nickname: hostNickname || 'מנהל המשחק',
           avatar: '👑',
           score: 0,
           joinedAt: Date.now(),
@@ -575,7 +575,6 @@ export function useFirebaseGame() {
   const getLeaderboard = useCallback((): LeaderboardEntry[] => {
     if (!game) return [];
     return Object.values(game.participants)
-      .filter((p) => !p.isHost)
       .sort((a, b) => b.score - a.score)
       .map((p, index) => ({
         participantId: p.id,

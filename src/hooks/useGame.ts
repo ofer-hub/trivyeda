@@ -42,7 +42,7 @@ export function useGame() {
 
   // יצירת משחק חדש
   const createGame = useCallback(
-    async (topic: string, settings: Partial<GameSettings> = {}) => {
+    async (topic: string, settings: Partial<GameSettings> = {}, hostNickname?: string) => {
       setIsLoading(true);
       setError(null);
       try {
@@ -59,7 +59,7 @@ export function useGame() {
 
         const hostParticipant: Participant = {
           id: currentUserId,
-          nickname: 'מנהל המשחק',
+          nickname: hostNickname || 'מנהל המשחק',
           avatar: '👑',
           score: 0,
           joinedAt: Date.now(),
@@ -293,7 +293,6 @@ export function useGame() {
   const getLeaderboard = useCallback((): LeaderboardEntry[] => {
     if (!game) return [];
     return Object.values(game.participants)
-      .filter((p) => !p.isHost)
       .sort((a, b) => b.score - a.score)
       .map((p, index) => ({
         participantId: p.id,

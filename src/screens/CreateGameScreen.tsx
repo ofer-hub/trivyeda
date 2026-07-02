@@ -6,7 +6,7 @@ import './CreateGameScreen.css';
 
 interface CreateGameScreenProps {
   initialTopic?: string;
-  onCreateGame: (topic: string, settings: Partial<GameSettings>) => void;
+  onCreateGame: (topic: string, settings: Partial<GameSettings>, hostNickname: string) => void;
   onBack: () => void;
   isLoading: boolean;
   error?: string | null;
@@ -28,6 +28,7 @@ export function CreateGameScreen({
   error,
 }: CreateGameScreenProps) {
   const [topic, setTopic] = useState(initialTopic);
+  const [hostNickname, setHostNickname] = useState('');
   const [settings, setSettings] = useState(defaultSettings);
   const [topicCheck, setTopicCheck] = useState<TopicCheck | null>(null);
   const [showTopicWarning, setShowTopicWarning] = useState(false);
@@ -62,7 +63,7 @@ export function CreateGameScreen({
       return;
     }
 
-    onCreateGame(trimmed, settings);
+    onCreateGame(trimmed, settings, hostNickname.trim());
   }
 
   function handleUseSuggestedTopic() {
@@ -77,7 +78,7 @@ export function CreateGameScreen({
 
   function handleContinueOriginal() {
     if (!topicCheck) return;
-    onCreateGame(topic.trim(), settings);
+    onCreateGame(topic.trim(), settings, hostNickname.trim());
   }
 
   function handleChangeTopic() {
@@ -142,6 +143,18 @@ export function CreateGameScreen({
           </div>
         ) : (
           <form className="create-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">השם שלך</label>
+              <input
+                className="form-input"
+                type="text"
+                value={hostNickname}
+                onChange={(e) => setHostNickname(e.target.value)}
+                placeholder="לדוגמה: דני, אמא, קבוצה א׳..."
+                maxLength={20}
+              />
+            </div>
+
             <div className="form-group">
               <label className="form-label">נושא המשחק</label>
               <input
