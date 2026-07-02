@@ -202,12 +202,12 @@ export function useFirebaseGame() {
           id: uid,
           nickname: hostNickname || 'מנהל המשחק',
           avatar: hostAvatarDataUrl ? '' : '👑',
-          avatarDataUrl: hostAvatarDataUrl,
           score: 0,
           joinedAt: Date.now(),
           isReady: true,
           lastAnswer: null,
           isHost: true,
+          ...(hostAvatarDataUrl ? { avatarDataUrl: hostAvatarDataUrl } : {}),
         };
 
         const gameData = {

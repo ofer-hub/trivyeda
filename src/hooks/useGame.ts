@@ -61,7 +61,7 @@ export function useGame() {
           id: currentUserId,
           nickname: hostNickname || 'מנהל המשחק',
           avatar: hostAvatarDataUrl ? '' : '👑',
-          avatarDataUrl: hostAvatarDataUrl,
+          ...(hostAvatarDataUrl ? { avatarDataUrl: hostAvatarDataUrl } : {}),
           score: 0,
           joinedAt: Date.now(),
           isReady: true,
