@@ -82,6 +82,36 @@ function deduplicateQuestions(questions: RawQuestion[]): RawQuestion[] {
   });
 }
 
+function recoverPartialQuestions(partial: string): unknown[] {
+  // Try full parse first
+  try {
+    const parsed = JSON.parse(partial) as Record<string, unknown>;
+    if (Array.isArray(parsed.questions)) return parsed.questions;
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // fall through to object extraction
+  }
+  // Extract individual complete { ... } objects from the questions array
+  const results: unknown[] = [];
+  let depth = 0;
+  let start = -1;
+  for (let i = 0; i < partial.length; i++) {
+    if (partial[i] === '{') {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (partial[i] === '}') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        try {
+          results.push(JSON.parse(partial.slice(start, i + 1)));
+        } catch { /* skip malformed object */ }
+        start = -1;
+      }
+    }
+  }
+  return results;
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -117,14 +147,30 @@ export default async function handler(req: Request): Promise<Response> {
       ],
       response_format: { type: 'json_object' },
       temperature: 0.7,
+      max_tokens: 8000,
     }),
   });
 
   console.log('[generate-questions] Groq status:', groqRes.status);
 
   if (!groqRes.ok) {
-    const errText = await groqRes.text();
-    console.error('[generate-questions] Groq error:', groqRes.status, errText.slice(0, 200));
+    const errBody = await groqRes.json().catch(() => null) as Record<string, unknown> | null;
+    const groqErrCode = (errBody?.error as Record<string, unknown> | undefined)?.code;
+    const failedGeneration = (errBody?.error as Record<string, unknown> | undefined)?.failed_generation as string | undefined;
+
+    // json_validate_failed: Groq generated JSON that got cut off — try to recover partial results
+    if (groqRes.status === 400 && groqErrCode === 'json_validate_failed' && failedGeneration) {
+      console.log('[generate-questions] json_validate_failed — attempting partial recovery');
+      const recovered = recoverPartialQuestions(failedGeneration);
+      const valid = recovered.filter(isValidQuestion);
+      const deduped = deduplicateQuestions(valid);
+      if (deduped.length > 0) {
+        console.log('[generate-questions] recovered', deduped.length, 'questions from partial generation');
+        return Response.json({ questions: deduped, suggestedTopic: deduped.length < count ? undefined : undefined });
+      }
+    }
+
+    console.error('[generate-questions] Groq error:', groqRes.status, groqErrCode ?? JSON.stringify(errBody)?.slice(0, 150));
     return Response.json({ error: 'Groq API error' }, { status: 502 });
   }
 
