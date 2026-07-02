@@ -68,8 +68,6 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
   const [period, setPeriod] = useState<Period>('all');
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [backfilling, setBackfilling] = useState(false);
-  const [backfillResult, setBackfillResult] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -91,9 +89,38 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
       );
 
       const tData = tSnap.val() as Record<string, TopicStat> | null;
-      setTopics(
-        tData ? Object.values(tData).sort((a, b) => b.count - a.count) : []
-      );
+
+      // One-time backfill: if topicStats is empty, scan existing games/ and populate it
+      if (!tData) {
+        const gamesSnap = await get(ref(db, 'games'));
+        const gamesRaw = gamesSnap.val() as Record<string, { topic?: string }> | null;
+        if (gamesRaw) {
+          const counts: Record<string, { topic: string; count: number }> = {};
+          Object.values(gamesRaw).forEach((g) => {
+            if (!g.topic) return;
+            const key = topicToKey(g.topic);
+            if (!counts[key]) counts[key] = { topic: g.topic.trim(), count: 0 };
+            counts[key].count++;
+          });
+          const bfUpdates: Record<string, unknown> = {};
+          const now = Date.now();
+          Object.entries(counts).forEach(([key, { topic, count }]) => {
+            bfUpdates[`topicStats/${key}/topic`] = topic;
+            bfUpdates[`topicStats/${key}/count`] = count;
+            bfUpdates[`topicStats/${key}/lastUsedAt`] = now;
+          });
+          if (Object.keys(bfUpdates).length > 0) {
+            await update(ref(db), bfUpdates);
+            setTopics(Object.values(counts).sort((a, b) => b.count - a.count) as TopicStat[]);
+          } else {
+            setTopics([]);
+          }
+        } else {
+          setTopics([]);
+        }
+      } else {
+        setTopics(Object.values(tData).sort((a, b) => b.count - a.count));
+      }
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : 'שגיאה בטעינת הנתונים');
     } finally {
@@ -105,47 +132,6 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
     if (unlocked) void loadData();
   }, [unlocked, loadData]);
 
-  const handleBackfill = useCallback(async () => {
-    setBackfilling(true);
-    setBackfillResult(null);
-    try {
-      await ensureSignedIn();
-      const gamesSnap = await get(ref(db, 'games'));
-      const gamesData = gamesSnap.val() as Record<string, { topic?: string }> | null;
-
-      if (!gamesData) {
-        setBackfillResult('לא נמצאו משחקים פעילים לסריקה');
-        return;
-      }
-
-      const topicCounts: Record<string, { topic: string; count: number }> = {};
-      Object.values(gamesData).forEach((game) => {
-        if (!game.topic) return;
-        const key = topicToKey(game.topic);
-        if (!topicCounts[key]) topicCounts[key] = { topic: game.topic.trim(), count: 0 };
-        topicCounts[key].count++;
-      });
-
-      const updates: Record<string, unknown> = {};
-      const now = Date.now();
-      Object.entries(topicCounts).forEach(([key, { topic, count }]) => {
-        updates[`topicStats/${key}/topic`] = topic;
-        updates[`topicStats/${key}/count`] = increment(count);
-        updates[`topicStats/${key}/lastUsedAt`] = now;
-      });
-
-      if (Object.keys(updates).length > 0) await update(ref(db), updates);
-
-      const gameCount = Object.keys(gamesData).length;
-      const topicCount = Object.keys(topicCounts).length;
-      setBackfillResult(`✓ נסרקו ${gameCount} משחקים — נמצאו ${topicCount} נושאים`);
-      void loadData();
-    } catch (e) {
-      setBackfillResult(`שגיאה: ${e instanceof Error ? e.message : 'נסה שוב'}`);
-    } finally {
-      setBackfilling(false);
-    }
-  }, [loadData]);
 
   function handlePinSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -247,21 +233,6 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
                 <span className="admin-stat__num">{avgParticipants}</span>
                 <span className="admin-stat__label">ממוצע/משחק</span>
               </div>
-            </div>
-
-            <div className="admin-backfill">
-              <button
-                className="admin-backfill__btn"
-                onClick={() => void handleBackfill()}
-                disabled={backfilling}
-              >
-                {backfilling ? '⏳ סורק...' : '🔍 סרוק משחקים קיימים'}
-              </button>
-              {backfillResult && (
-                <span className={`admin-backfill__result ${backfillResult.startsWith('שגיאה') ? 'admin-backfill__result--error' : ''}`}>
-                  {backfillResult}
-                </span>
-              )}
             </div>
 
             <section className="admin-section">
