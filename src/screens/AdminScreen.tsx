@@ -5,7 +5,7 @@ import { ensureSignedIn } from '../services/firebase/authService';
 import './AdminScreen.css';
 
 // ← שנה כאן את הסיסמא
-const ADMIN_PIN = '1234';
+const ADMIN_PIN = '9919';
 
 interface GameStat {
   id: string;
