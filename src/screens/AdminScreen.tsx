@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ref, get, update, increment } from 'firebase/database';
+import { ref, get, update } from 'firebase/database';
 import { db } from '../services/firebase/config';
 import { ensureSignedIn } from '../services/firebase/authService';
 import './AdminScreen.css';
