@@ -45,15 +45,12 @@
   letter-spacing: 0.3em;
   text-align: center;
   padding: 1rem;
-  direction: ltr;
 }
 
 .form-input--code::placeholder {
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: normal;
-  direction: rtl;
-  unicode-bidi: bidi-override;
 }
 
 /* ── Photo section ── */

@@ -65,6 +65,7 @@ export function JoinScreen({
             <input
               className="form-input form-input--code"
               type="text"
+              dir={code ? 'ltr' : 'rtl'}
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="הזן קוד 6 ספרות"
