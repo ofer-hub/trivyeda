@@ -42,7 +42,7 @@ export function useGame() {
 
   // יצירת משחק חדש
   const createGame = useCallback(
-    async (topic: string, settings: Partial<GameSettings> = {}, hostNickname?: string) => {
+    async (topic: string, settings: Partial<GameSettings> = {}, hostNickname?: string, hostAvatarDataUrl?: string) => {
       setIsLoading(true);
       setError(null);
       try {
@@ -60,7 +60,8 @@ export function useGame() {
         const hostParticipant: Participant = {
           id: currentUserId,
           nickname: hostNickname || 'מנהל המשחק',
-          avatar: '👑',
+          avatar: hostAvatarDataUrl ? '' : '👑',
+          avatarDataUrl: hostAvatarDataUrl,
           score: 0,
           joinedAt: Date.now(),
           isReady: true,

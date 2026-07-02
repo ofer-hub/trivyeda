@@ -17,7 +17,7 @@ export interface GameHookProps {
   isLoading: boolean;
   error: string | null;
   currentUserId: string;
-  createGame: (topic: string, settings?: Partial<GameSettings>, hostNickname?: string) => Promise<Game>;
+  createGame: (topic: string, settings?: Partial<GameSettings>, hostNickname?: string, hostAvatarDataUrl?: string) => Promise<Game>;
   addParticipant: (nickname: string, avatar: string) => string | Promise<string>;
   joinByCode: (code: string, nickname: string, avatar: string, avatarDataUrl?: string) => Promise<void>;
   startGame: () => void | Promise<void>;
@@ -57,6 +57,7 @@ export function GameContent({
   const [screen, setScreen] = useState<AppScreen>('home');
   const [selectedTopic, setSelectedTopic] = useState('');
   const [hostNickname, setHostNickname] = useState('');
+  const [hostAvatarUrl, setHostAvatarUrl] = useState<string | undefined>(undefined);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Prevents duplicate host-action calls from rapid clicks
   const pendingActionRef = useRef(false);
@@ -144,10 +145,11 @@ export function GameContent({
     };
   }
 
-  async function handleCreateGame(topic: string, settings: Partial<GameSettings>, nickname?: string) {
+  async function handleCreateGame(topic: string, settings: Partial<GameSettings>, nickname?: string, avatarDataUrl?: string) {
     if (nickname !== undefined) setHostNickname(nickname);
+    if (avatarDataUrl !== undefined) setHostAvatarUrl(avatarDataUrl);
     try {
-      await createGame(topic, settings, nickname ?? hostNickname);
+      await createGame(topic, settings, nickname ?? hostNickname, avatarDataUrl ?? hostAvatarUrl);
       setScreen('waiting');
     } catch {
       // error shown via hook's error state

@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Logo } from '../components/Logo';
 import { checkTopic } from '../services/topicChecker';
+import { processAvatarImage } from '../utils/imageUtils';
 import type { GameSettings, TopicCheck, Difficulty, Audience, QuestionAdvanceMode } from '../types/game';
 import './CreateGameScreen.css';
 
 interface CreateGameScreenProps {
   initialTopic?: string;
-  onCreateGame: (topic: string, settings: Partial<GameSettings>, hostNickname: string) => void;
+  onCreateGame: (topic: string, settings: Partial<GameSettings>, hostNickname: string, hostAvatarDataUrl?: string) => void;
   onBack: () => void;
   isLoading: boolean;
   error?: string | null;
@@ -29,6 +30,9 @@ export function CreateGameScreen({
 }: CreateGameScreenProps) {
   const [topic, setTopic] = useState(initialTopic);
   const [hostNickname, setHostNickname] = useState('');
+  const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState(defaultSettings);
   const [topicCheck, setTopicCheck] = useState<TopicCheck | null>(null);
   const [showTopicWarning, setShowTopicWarning] = useState(false);
@@ -63,7 +67,20 @@ export function CreateGameScreen({
       return;
     }
 
-    onCreateGame(trimmed, settings, hostNickname.trim());
+    onCreateGame(trimmed, settings, hostNickname.trim(), avatarDataUrl ?? undefined);
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoError(null);
+    const result = await processAvatarImage(file);
+    if (result) {
+      setAvatarDataUrl(result);
+    } else {
+      setPhotoError('התמונה גדולה מדי. אנא בחר תמונה קטנה יותר.');
+    }
+    e.target.value = '';
   }
 
   function handleUseSuggestedTopic() {
@@ -78,7 +95,7 @@ export function CreateGameScreen({
 
   function handleContinueOriginal() {
     if (!topicCheck) return;
-    onCreateGame(topic.trim(), settings, hostNickname.trim());
+    onCreateGame(topic.trim(), settings, hostNickname.trim(), avatarDataUrl ?? undefined);
   }
 
   function handleChangeTopic() {
@@ -144,14 +161,43 @@ export function CreateGameScreen({
         ) : (
           <form className="create-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">השם שלך</label>
+              <label className="form-label">
+                השם שלך
+                <span className="form-label-optional"> (אופציונלי)</span>
+              </label>
+              <div className="host-identity">
+                <button
+                  type="button"
+                  className="avatar-pick"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="העלה תמונת פרופיל"
+                >
+                  {avatarDataUrl
+                    ? <img src={avatarDataUrl} className="avatar-pick__img" alt="תמונת פרופיל" />
+                    : <span className="avatar-pick__icon">📷</span>
+                  }
+                </button>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={hostNickname}
+                  onChange={(e) => setHostNickname(e.target.value)}
+                  placeholder="לדוגמה: דני, אמא, קבוצה א׳..."
+                  maxLength={20}
+                />
+              </div>
+              {avatarDataUrl && (
+                <button type="button" className="photo-preview__remove" onClick={() => setAvatarDataUrl(null)}>
+                  ✕ הסר תמונה
+                </button>
+              )}
+              {photoError && <p className="photo-error">{photoError}</p>}
               <input
-                className="form-input"
-                type="text"
-                value={hostNickname}
-                onChange={(e) => setHostNickname(e.target.value)}
-                placeholder="לדוגמה: דני, אמא, קבוצה א׳..."
-                maxLength={20}
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
               />
             </div>
 

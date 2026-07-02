@@ -166,7 +166,7 @@ export function useFirebaseGame() {
 
   // ---- createGame (host flow) ----
   const createGame = useCallback(
-    async (topic: string, settings: Partial<GameSettings> = {}, hostNickname?: string): Promise<Game> => {
+    async (topic: string, settings: Partial<GameSettings> = {}, hostNickname?: string, hostAvatarDataUrl?: string): Promise<Game> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -201,7 +201,8 @@ export function useFirebaseGame() {
         const hostParticipant: Participant = {
           id: uid,
           nickname: hostNickname || 'מנהל המשחק',
-          avatar: '👑',
+          avatar: hostAvatarDataUrl ? '' : '👑',
+          avatarDataUrl: hostAvatarDataUrl,
           score: 0,
           joinedAt: Date.now(),
           isReady: true,

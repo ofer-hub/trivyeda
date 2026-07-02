@@ -28,6 +28,75 @@
   padding: 1.5rem 1.25rem 3rem;
 }
 
+.host-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.avatar-pick {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px dashed rgba(0, 229, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  overflow: hidden;
+  padding: 0;
+}
+
+.avatar-pick:hover {
+  border-color: rgba(0, 229, 255, 0.65);
+  background: rgba(0, 229, 255, 0.08);
+}
+
+.avatar-pick__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-pick__icon {
+  font-size: 1.2rem;
+}
+
+.form-label-optional {
+  font-weight: 400;
+  color: rgba(180, 200, 255, 0.38);
+  font-size: 0.82rem;
+}
+
+.photo-preview__remove {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+  margin-top: 0.3rem;
+  display: inline-block;
+}
+
+.photo-preview__remove:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.photo-error {
+  color: #f87171;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0.25rem 0 0;
+}
+
 .create-title {
   font-size: 1.6rem;
   font-weight: 800;
