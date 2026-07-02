@@ -1,0 +1,310 @@
+.admin-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #07071a 0%, #0d1b3e 50%, #1a0a2e 100%);
+  direction: rtl;
+  color: white;
+}
+
+/* ── Header ── */
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.admin-header__title {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: white;
+}
+
+.admin-refresh {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(180, 200, 255, 0.6);
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.admin-refresh:hover {
+  border-color: rgba(0, 229, 255, 0.4);
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.06);
+}
+
+/* ── Main ── */
+
+.admin-main {
+  flex: 1;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── Loading ── */
+
+.admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 40vh;
+  color: rgba(180, 200, 255, 0.55);
+  font-size: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.admin-loading__spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 229, 255, 0.2);
+  border-top-color: #00e5ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Period tabs ── */
+
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.3rem;
+}
+
+.admin-tab {
+  flex: 1;
+  padding: 0.5rem 0.25rem;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(180, 200, 255, 0.5);
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.admin-tab--active {
+  background: rgba(26, 115, 232, 0.28);
+  color: #7dd3fc;
+  box-shadow: 0 0 10px rgba(26, 115, 232, 0.2);
+}
+
+.admin-tab:not(.admin-tab--active):hover {
+  color: rgba(200, 220, 255, 0.75);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── Stat cards ── */
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.admin-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1.1rem 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+.admin-stat__num {
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #00e5ff, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+.admin-stat__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(180, 200, 255, 0.5);
+  text-align: center;
+}
+
+/* ── Section ── */
+
+.admin-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-section__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(180, 200, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.admin-section__sub {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: rgba(180, 200, 255, 0.35);
+}
+
+.admin-empty {
+  color: rgba(180, 200, 255, 0.35);
+  font-size: 0.9rem;
+  margin: 0;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+/* ── Topics list ── */
+
+.admin-topics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-topic {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+}
+
+.admin-topic__rank {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(180, 200, 255, 0.3);
+  width: 1.8rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.admin-topic__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.admin-topic__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.admin-topic__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(220, 230, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-topic__count {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #00e5ff;
+  flex-shrink: 0;
+}
+
+.admin-topic__bar-bg {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.admin-topic__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1a73e8, #00e5ff);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+/* ── Recent games ── */
+
+.admin-games {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.admin-game {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.admin-game__topic {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: rgba(220, 230, 255, 0.88);
+}
+
+.admin-game__meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.78rem;
+  color: rgba(180, 200, 255, 0.45);
+  flex-wrap: wrap;
+}
+
+.admin-game__date {
+  margin-right: auto;
+  font-size: 0.75rem;
+  color: rgba(180, 200, 255, 0.3);
+}

@@ -9,8 +9,9 @@ import { QuestionScreen } from './screens/QuestionScreen';
 import { RevealScreen } from './screens/RevealScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
 import { GameOverScreen } from './screens/GameOverScreen';
+import { AdminScreen } from './screens/AdminScreen';
 
-type AppScreen = 'home' | 'create' | 'join' | 'waiting' | 'playing';
+type AppScreen = 'home' | 'create' | 'join' | 'waiting' | 'playing' | 'admin';
 
 export interface GameHookProps {
   game: Game | null;
@@ -228,6 +229,10 @@ export function GameContent({
 
   // --- Rendering ---
 
+  if (screen === 'admin') {
+    return <AdminScreen onBack={() => setScreen('home')} />;
+  }
+
   if (screen === 'home') {
     return (
       <HomeScreen
@@ -237,6 +242,7 @@ export function GameContent({
           setSelectedTopic(topic);
           setScreen('create');
         }}
+        onAdmin={() => setScreen('admin')}
       />
     );
   }

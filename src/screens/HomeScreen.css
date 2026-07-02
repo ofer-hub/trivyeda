@@ -271,4 +271,26 @@
   color: rgba(148, 163, 184, 0.35);
   font-size: 0.78rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.home-admin-btn {
+  background: none;
+  border: none;
+  color: rgba(148, 163, 184, 0.25);
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+  letter-spacing: 0.05em;
+}
+
+.home-admin-btn:hover {
+  color: rgba(148, 163, 184, 0.6);
+  background: rgba(255, 255, 255, 0.05);
 }

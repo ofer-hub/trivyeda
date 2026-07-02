@@ -5,9 +5,10 @@ interface HomeScreenProps {
   onCreateGame: () => void;
   onJoinGame: () => void;
   onSelectTopic: (topic: string) => void;
+  onAdmin: () => void;
 }
 
-export function HomeScreen({ onCreateGame, onJoinGame, onSelectTopic }: HomeScreenProps) {
+export function HomeScreen({ onCreateGame, onJoinGame, onSelectTopic, onAdmin }: HomeScreenProps) {
   return (
     <div className="home-screen">
       <header className="home-header">
@@ -50,6 +51,7 @@ export function HomeScreen({ onCreateGame, onJoinGame, onSelectTopic }: HomeScre
 
       <footer className="home-footer">
         <p>טריווידע — פרויקט OferApps</p>
+        <button className="home-admin-btn" onClick={onAdmin}>⚙ ניהול</button>
       </footer>
     </div>
   );
