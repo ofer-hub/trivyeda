@@ -59,9 +59,9 @@ export function RevealScreen({
     return 'dimmed';
   }
 
-  const nonHostParticipants = Object.values(game.participants).filter((p) => !p.isHost);
-  const correctCount = nonHostParticipants.filter((p) => p.lastAnswer?.isCorrect).length;
-  const totalNonHost = nonHostParticipants.length;
+  const allPlayers = Object.values(game.participants);
+  const correctCount = allPlayers.filter((p) => p.lastAnswer?.isCorrect).length;
+  const totalPlayers = allPlayers.length;
 
   return (
     <div className="reveal-screen">
@@ -103,7 +103,7 @@ export function RevealScreen({
             <span className="stat-card__label">ענו נכון</span>
           </div>
           <div className="stat-card stat-card--total">
-            <span className="stat-card__num">{totalNonHost - correctCount}</span>
+            <span className="stat-card__num">{totalPlayers - correctCount}</span>
             <span className="stat-card__label">טעו</span>
           </div>
         </div>
