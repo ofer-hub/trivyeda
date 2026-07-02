@@ -1,7 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ref, get } from 'firebase/database';
 import { db } from '../services/firebase/config';
+import { ensureSignedIn } from '../services/firebase/authService';
 import './AdminScreen.css';
+
+// ← שנה כאן את הסיסמא
+const ADMIN_PIN = '1234';
 
 interface GameStat {
   id: string;
@@ -40,7 +44,10 @@ function periodCutoff(period: Period): number {
 }
 
 function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return new Date(ts).toLocaleDateString('he-IL', {
+    day: '2-digit', month: '2-digit', year: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  });
 }
 
 interface AdminScreenProps {
@@ -48,44 +55,99 @@ interface AdminScreenProps {
 }
 
 export function AdminScreen({ onBack }: AdminScreenProps) {
+  const [unlocked, setUnlocked] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState(false);
+
   const [games, setGames] = useState<GameStat[]>([]);
   const [topics, setTopics] = useState<TopicStat[]>([]);
   const [period, setPeriod] = useState<Period>('all');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [gSnap, tSnap] = await Promise.all([
-      get(ref(db, 'gameStats')),
-      get(ref(db, 'topicStats')),
-    ]);
+    setLoadError(null);
+    try {
+      await ensureSignedIn();
+      const [gSnap, tSnap] = await Promise.all([
+        get(ref(db, 'gameStats')),
+        get(ref(db, 'topicStats')),
+      ]);
 
-    const gData = gSnap.val() as Record<string, Omit<GameStat, 'id'>> | null;
-    setGames(
-      gData
-        ? Object.entries(gData)
-            .map(([id, v]) => ({ ...v, id }))
-            .sort((a, b) => b.createdAt - a.createdAt)
-        : []
-    );
+      const gData = gSnap.val() as Record<string, Omit<GameStat, 'id'>> | null;
+      setGames(
+        gData
+          ? Object.entries(gData)
+              .map(([id, v]) => ({ ...v, id }))
+              .sort((a, b) => b.createdAt - a.createdAt)
+          : []
+      );
 
-    const tData = tSnap.val() as Record<string, TopicStat> | null;
-    setTopics(
-      tData ? Object.values(tData).sort((a, b) => b.count - a.count) : []
-    );
-
-    setLoading(false);
+      const tData = tSnap.val() as Record<string, TopicStat> | null;
+      setTopics(
+        tData ? Object.values(tData).sort((a, b) => b.count - a.count) : []
+      );
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : 'שגיאה בטעינת הנתונים');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { void loadData(); }, [loadData]);
+  useEffect(() => {
+    if (unlocked) void loadData();
+  }, [unlocked, loadData]);
 
+  function handlePinSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (pin === ADMIN_PIN) {
+      setUnlocked(true);
+      setPinError(false);
+    } else {
+      setPinError(true);
+      setPin('');
+    }
+  }
+
+  // ── PIN screen ──
+  if (!unlocked) {
+    return (
+      <div className="admin-screen">
+        <header className="admin-header">
+          <button className="btn-back" onClick={onBack}>&#x2190;</button>
+          <span className="admin-header__title">📊 ממשק ניהול</span>
+        </header>
+        <main className="admin-main admin-main--centered">
+          <form className="admin-pin-form" onSubmit={handlePinSubmit}>
+            <div className="admin-pin-icon">🔒</div>
+            <h2 className="admin-pin-title">הכנס סיסמא</h2>
+            <input
+              className={`admin-pin-input ${pinError ? 'admin-pin-input--error' : ''}`}
+              type="password"
+              inputMode="numeric"
+              value={pin}
+              onChange={(e) => { setPin(e.target.value); setPinError(false); }}
+              placeholder="••••"
+              autoFocus
+              maxLength={20}
+            />
+            {pinError && <p className="admin-pin-error">סיסמא שגויה</p>}
+            <button type="submit" className="btn btn--primary" disabled={!pin}>
+              כניסה
+            </button>
+          </form>
+        </main>
+      </div>
+    );
+  }
+
+  // ── Dashboard ──
   const cutoff = periodCutoff(period);
   const filtered = period === 'all' ? games : games.filter((g) => g.createdAt >= cutoff);
-
   const totalGames = filtered.length;
   const totalParticipants = filtered.reduce((s, g) => s + (g.participantCount ?? 0), 0);
   const avgParticipants = totalGames > 0 ? (totalParticipants / totalGames).toFixed(1) : '–';
-
   const maxTopicCount = topics[0]?.count ?? 1;
 
   return (
@@ -101,6 +163,14 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
           <div className="admin-loading">
             <span className="admin-loading__spinner" />
             טוען נתונים...
+          </div>
+        ) : loadError ? (
+          <div className="admin-error">
+            <p>⚠️ {loadError}</p>
+            <p className="admin-error__hint">
+              ודא שכללי Firebase מאפשרים קריאה מ-<code>gameStats</code> ו-<code>topicStats</code> למשתמשים מאומתים.
+            </p>
+            <button className="btn btn--ghost btn--sm" onClick={() => void loadData()}>נסה שוב</button>
           </div>
         ) : (
           <>
