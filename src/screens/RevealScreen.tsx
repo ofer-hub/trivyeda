@@ -11,6 +11,7 @@ interface RevealScreenProps {
   isLastQuestion: boolean;
   isHost: boolean;
   autoAdvance: boolean;
+  onStopGame: () => void;
 }
 
 export function RevealScreen({
@@ -20,6 +21,7 @@ export function RevealScreen({
   isLastQuestion,
   isHost,
   autoAdvance,
+  onStopGame,
 }: RevealScreenProps) {
   const question = game.questions[game.currentQuestionIndex];
   const myParticipant = game.participants[currentUserId];
@@ -122,9 +124,14 @@ export function RevealScreen({
         )}
 
         {isHost && (
-          <button className="btn btn--primary btn--xl reveal-next-btn" onClick={onNext}>
-            {isLastQuestion ? '🏆 ראה דירוג סופי' : '📊 ראה דירוג'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
+            <button className="btn btn--primary btn--xl reveal-next-btn" onClick={onNext}>
+              {isLastQuestion ? '🏆 ראה דירוג סופי' : '📊 ראה דירוג'}
+            </button>
+            <button className="btn btn--danger btn--sm" onClick={onStopGame}>
+              ✕ עצור משחק
+            </button>
+          </div>
         )}
       </div>
     </div>

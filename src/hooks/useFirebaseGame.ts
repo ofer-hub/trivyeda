@@ -175,12 +175,13 @@ export function useFirebaseGame() {
         setCurrentUserId(uid);
 
         const mergedSettings = { ...DEFAULT_SETTINGS, ...settings };
-        const questions = await activeQuestionGenerator.generate({
+        const { questions, suggestedTopic } = await activeQuestionGenerator.generate({
           topic,
           count: mergedSettings.questionCount,
           difficulty: mergedSettings.difficulty,
           audience: mergedSettings.audience,
         });
+        const resolvedSuggestedTopic = questions.length < mergedSettings.questionCount ? (suggestedTopic ?? null) : null;
 
         const gameId = generateId();
         const joinCode = generateJoinCode();
@@ -213,7 +214,7 @@ export function useFirebaseGame() {
           hostUserId: uid,
           topic,
           originalTopic: topic,
-          suggestedTopic: null,
+          suggestedTopic: resolvedSuggestedTopic,
           sourceMode: 'generalTopic',
           status: 'waiting',
           settings: mergedSettings,
@@ -249,7 +250,7 @@ export function useFirebaseGame() {
           hostUserId: uid,
           topic,
           originalTopic: topic,
-          suggestedTopic: null,
+          suggestedTopic: resolvedSuggestedTopic,
           sourceMode: 'generalTopic',
           status: 'waiting',
           settings: mergedSettings,

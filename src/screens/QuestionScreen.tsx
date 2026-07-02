@@ -10,9 +10,11 @@ interface QuestionScreenProps {
   currentUserId: string;
   onAnswer: (answerIndex: number, questionStartTime: number) => void;
   onTimeUp: (questionStartTime: number) => void;
+  isHost: boolean;
+  onStopGame: () => void;
 }
 
-export function QuestionScreen({ game, currentUserId, onAnswer, onTimeUp }: QuestionScreenProps) {
+export function QuestionScreen({ game, currentUserId, onAnswer, onTimeUp, isHost, onStopGame }: QuestionScreenProps) {
   const question = game.questions[game.currentQuestionIndex];
   const participant = game.participants[currentUserId];
   const hasAnswered = !!participant?.lastAnswer;
@@ -90,6 +92,14 @@ export function QuestionScreen({ game, currentUserId, onAnswer, onTimeUp }: Ques
         {hasAnswered && (
           <div className="answered-feedback">
             <span>✅ תשובתך נרשמה! מחכים לשאר המשתתפים...</span>
+          </div>
+        )}
+
+        {isHost && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+            <button className="btn btn--danger btn--sm" onClick={onStopGame}>
+              ✕ עצור משחק
+            </button>
           </div>
         )}
       </div>

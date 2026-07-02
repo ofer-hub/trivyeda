@@ -11,6 +11,7 @@ interface LeaderboardScreenProps {
   autoAdvance: boolean;
   currentQuestionIndex: number;
   totalQuestions: number;
+  onStopGame: () => void;
 }
 
 const RANK_MEDALS = ['🥇', '🥈', '🥉'];
@@ -23,6 +24,7 @@ export function LeaderboardScreen({
   autoAdvance,
   currentQuestionIndex,
   totalQuestions,
+  onStopGame,
 }: LeaderboardScreenProps) {
   const [countdown, setCountdown] = useState(5);
 
@@ -73,9 +75,14 @@ export function LeaderboardScreen({
         </div>
 
         {isHost && (
-          <button className="btn lb-btn" onClick={onNext}>
-            {isLastQuestion ? '🎊 לטקס הסיום' : '⏭ שאלה הבאה'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+            <button className="btn lb-btn" onClick={onNext}>
+              {isLastQuestion ? '🎊 לטקס הסיום' : '⏭ שאלה הבאה'}
+            </button>
+            <button className="btn btn--danger btn--sm" onClick={onStopGame}>
+              ✕ עצור משחק
+            </button>
+          </div>
         )}
       </div>
     </div>

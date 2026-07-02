@@ -1,9 +1,9 @@
-import type { QuestionGenerator, QuestionGeneratorOptions } from './questionGenerator';
+import type { QuestionGenerator, QuestionGeneratorOptions, GenerateResult } from './questionGenerator';
 import type { QuestionFull } from '../types/game';
 import { getDemoQuestions } from '../data/demoQuestions';
 
 export const geminiQuestionGenerator: QuestionGenerator = {
-  async generate({ topic, count, difficulty, audience }: QuestionGeneratorOptions): Promise<QuestionFull[]> {
+  async generate({ topic, count, difficulty, audience }: QuestionGeneratorOptions): Promise<GenerateResult> {
     try {
       const res = await fetch('/api/generate-questions', {
         method: 'POST',
@@ -13,17 +13,12 @@ export const geminiQuestionGenerator: QuestionGenerator = {
 
       if (!res.ok) throw new Error(`API error ${res.status}`);
 
-      const raw = await res.json() as Array<Omit<QuestionFull, 'id'>>;
-      const aiQuestions = raw.map((q, i) => ({ ...q, id: `ai-${Date.now()}-${i}` }));
+      const data = await res.json() as { questions: Array<Omit<QuestionFull, 'id'>>; suggestedTopic?: string };
+      const questions = data.questions.map((q, i) => ({ ...q, id: `ai-${Date.now()}-${i}` }));
 
-      if (aiQuestions.length >= count) return aiQuestions;
-
-      // Partial fallback: fill missing slots with demo questions
-      const missing = count - aiQuestions.length;
-      const demo = getDemoQuestions(topic, missing).slice(0, missing);
-      return [...aiQuestions, ...demo];
+      return { questions, suggestedTopic: data.suggestedTopic };
     } catch {
-      return getDemoQuestions(topic, count);
+      return { questions: getDemoQuestions(topic, count) };
     }
   },
 };

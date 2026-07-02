@@ -43,7 +43,8 @@ function buildUserPrompt(topic: string, count: number, difficulty: string, audie
       "correctIndex": 0,
       "explanation": "הסבר קצר מדוע זו התשובה הנכונה"
     }
-  ]
+  ],
+  "suggestedTopic": "אם הנושא רחב מדי להשאיר ריק, אם הנושא צר מדי — כתוב כאן נושא רחב יותר שיאפשר יותר שאלות. לדוגמה: אם הנושא הוא 'מלפפונים חמוצים' הצע 'חמוצים ושיטות כבישה בעולם'."
 }`;
 }
 
@@ -63,7 +64,7 @@ function isValidQuestion(q: unknown): q is RawQuestion {
   const obj = q as Record<string, unknown>;
   if (typeof obj.question !== 'string' || obj.question.trim().length === 0 || obj.question.length > 300) return false;
   if (!Array.isArray(obj.answers) || obj.answers.length !== 4) return false;
-  if (!(obj.answers as unknown[]).every((a) => typeof a === 'string' && a.trim().length > 0 && (a as string).length <= 200)) return false;
+  if (!(obj.answers as unknown[]).every((a) => typeof a === 'string' && (a as string).trim().length > 0 && (a as string).length <= 200)) return false;
   const ci = obj.correctIndex;
   if (typeof ci !== 'number' || !Number.isInteger(ci) || ci < 0 || ci > 3) return false;
   if (new Set((obj.answers as string[]).map(norm)).size !== 4) return false;
@@ -136,18 +137,28 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   let questions: RawQuestion[];
+  let suggestedTopic: string | undefined;
+
   try {
-    const parsed = JSON.parse(text) as Record<string, unknown> | unknown[];
+    const parsed = JSON.parse(text) as Record<string, unknown>;
     const rawArray = Array.isArray(parsed)
       ? parsed
-      : ((parsed as Record<string, unknown>).questions ?? []);
-    const valid = (rawArray as unknown[]).filter(isValidQuestion);
+      : ((parsed.questions ?? []) as unknown[]);
+    const valid = rawArray.filter(isValidQuestion);
     questions = deduplicateQuestions(valid);
+    if (typeof parsed.suggestedTopic === 'string' && parsed.suggestedTopic.trim()) {
+      suggestedTopic = parsed.suggestedTopic.trim();
+    }
   } catch {
     console.error('[generate-questions] JSON parse error');
     return Response.json({ error: 'Invalid JSON from Groq' }, { status: 502 });
   }
 
   console.log('[generate-questions] returning', questions.length, 'valid questions of', count, 'requested');
-  return Response.json(questions);
+
+  const result: Record<string, unknown> = { questions };
+  if (questions.length < count && suggestedTopic) {
+    result.suggestedTopic = suggestedTopic;
+  }
+  return Response.json(result);
 }

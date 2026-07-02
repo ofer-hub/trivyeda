@@ -47,7 +47,7 @@ export function useGame() {
       setError(null);
       try {
         const mergedSettings = { ...DEFAULT_SETTINGS, ...settings };
-        const questions = await activeQuestionGenerator.generate({
+        const { questions, suggestedTopic } = await activeQuestionGenerator.generate({
           topic,
           count: mergedSettings.questionCount,
           difficulty: mergedSettings.difficulty,
@@ -73,7 +73,7 @@ export function useGame() {
           hostUserId: currentUserId,
           topic,
           originalTopic: topic,
-          suggestedTopic: null,
+          suggestedTopic: (questions.length < mergedSettings.questionCount ? (suggestedTopic ?? null) : null),
           sourceMode: 'generalTopic',
           status: 'waiting',
           settings: mergedSettings,

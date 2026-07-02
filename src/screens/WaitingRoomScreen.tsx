@@ -9,6 +9,8 @@ interface WaitingRoomScreenProps {
   currentUserId: string;
   onStartGame: () => void;
   onAddDemoParticipant: (nickname: string, avatar: string) => void;
+  onStopGame: () => void;
+  onBroaderTopic: (topic: string) => void;
 }
 
 const DEMO_NAMES = ['שרה', 'ינון', 'תמר', 'איתי', 'נועה', 'אסף', 'ליאור', 'רוני', 'דני', 'אביב'];
@@ -18,6 +20,8 @@ export function WaitingRoomScreen({
   currentUserId,
   onStartGame,
   onAddDemoParticipant,
+  onStopGame,
+  onBroaderTopic,
 }: WaitingRoomScreenProps) {
   const [copied, setCopied] = useState(false);
   const isHost = game.hostUserId === currentUserId;
@@ -58,6 +62,24 @@ export function WaitingRoomScreen({
             </button>
           </div>
         </div>
+
+        {isHost && game.suggestedTopic && (
+          <div className="suggested-topic-banner">
+            <p className="suggested-topic-banner__text">
+              💡 נמצאו רק <strong>{Object.keys(game.participants).length > 0 ? game.questions.length : '?'}</strong> שאלות על &ldquo;{game.topic}&rdquo;.
+              נסה נושא רחב יותר:
+            </p>
+            <div className="suggested-topic-banner__suggestion">
+              <span className="suggested-topic-banner__name">{game.suggestedTopic}</span>
+              <button
+                className="btn btn--secondary btn--sm"
+                onClick={() => onBroaderTopic(game.suggestedTopic!)}
+              >
+                נסה נושא זה
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="participants-section">
           <div className="participants-header">
@@ -101,6 +123,9 @@ export function WaitingRoomScreen({
             {nonHostParticipants.length === 0 && (
               <p className="waiting-hint">הוסף לפחות משתתף אחד כדי להתחיל</p>
             )}
+            <button className="btn btn--danger btn--sm" onClick={onStopGame}>
+              ✕ בטל משחק
+            </button>
           </div>
         ) : (
           <div className="participant-waiting">

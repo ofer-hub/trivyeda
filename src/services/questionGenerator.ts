@@ -9,14 +9,19 @@ export interface QuestionGeneratorOptions {
   audience: Audience;
 }
 
+export interface GenerateResult {
+  questions: QuestionFull[];
+  suggestedTopic?: string;
+}
+
 export interface QuestionGenerator {
-  generate(options: QuestionGeneratorOptions): Promise<QuestionFull[]>;
+  generate(options: QuestionGeneratorOptions): Promise<GenerateResult>;
 }
 
 export const mockQuestionGenerator: QuestionGenerator = {
-  async generate({ topic, count }: QuestionGeneratorOptions): Promise<QuestionFull[]> {
+  async generate({ topic, count }: QuestionGeneratorOptions): Promise<GenerateResult> {
     await new Promise((resolve) => setTimeout(resolve, 800));
-    return getDemoQuestions(topic, count);
+    return { questions: getDemoQuestions(topic, count) };
   },
 };
 

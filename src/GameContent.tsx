@@ -173,6 +173,20 @@ export function GameContent({
     }
   });
 
+  const handleStopGame = withPendingGuard(async () => {
+    if (game && game.status !== 'waiting') {
+      await Promise.resolve(finishGame());
+    }
+    handleHome();
+  });
+
+  async function handleBroaderTopic(topic: string) {
+    const settings = game ? { ...game.settings } : {};
+    resetGame();
+    setSelectedTopic('');
+    await handleCreateGame(topic, settings);
+  }
+
   async function handlePlayAgain() {
     if (!game) return;
     const topic = game.topic;
@@ -262,6 +276,8 @@ export function GameContent({
         currentUserId={currentUserId}
         onStartGame={handleStartGame}
         onAddDemoParticipant={addParticipant}
+        onStopGame={handleStopGame}
+        onBroaderTopic={handleBroaderTopic}
       />
     );
   }
@@ -273,6 +289,8 @@ export function GameContent({
         currentUserId={currentUserId}
         onAnswer={handleAnswer}
         onTimeUp={handleTimeUp}
+        isHost={isHost}
+        onStopGame={handleStopGame}
       />
     );
   }
@@ -287,6 +305,7 @@ export function GameContent({
         isLastQuestion={isLast}
         isHost={isHost}
         autoAdvance={isAutoAdvance && isHost}
+        onStopGame={handleStopGame}
       />
     );
   }
@@ -302,6 +321,7 @@ export function GameContent({
         autoAdvance={isAutoAdvance && isHost && !isLast}
         currentQuestionIndex={game.currentQuestionIndex}
         totalQuestions={game.questions.length}
+        onStopGame={handleStopGame}
       />
     );
   }
