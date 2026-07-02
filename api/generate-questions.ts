@@ -30,14 +30,16 @@ function buildPrompt(topic: string, count: number, difficulty: string, audience:
 - הכל בעברית בלבד
 
 החזר JSON תקין בלבד, ללא כל טקסט נוסף, במבנה הזה:
-[
-  {
-    "question": "טקסט השאלה",
-    "answers": ["תשובה א", "תשובה ב", "תשובה ג", "תשובה ד"],
-    "correctIndex": 0,
-    "explanation": "הסבר קצר מדוע זו התשובה הנכונה"
-  }
-]`;
+{
+  "questions": [
+    {
+      "question": "טקסט השאלה",
+      "answers": ["תשובה א", "תשובה ב", "תשובה ג", "תשובה ד"],
+      "correctIndex": 0,
+      "explanation": "הסבר קצר מדוע זו התשובה הנכונה"
+    }
+  ]
+}`;
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -45,9 +47,10 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
+    console.error('[generate-questions] GROQ_API_KEY not configured');
+    return Response.json({ error: 'GROQ_API_KEY not configured' }, { status: 500 });
   }
 
   const body = await req.json() as { topic: string; count: number; difficulty: string; audience: string };
@@ -58,37 +61,48 @@ export default async function handler(req: Request): Promise<Response> {
     return Response.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
-  const prompt = buildPrompt(topic, count, difficulty, audience);
+  console.log('[generate-questions] called | topic:', topic, '| count:', count, '| hasApiKey: true');
 
-  const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.7,
-        },
-      }),
-    }
-  );
+  const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: buildPrompt(topic, count, difficulty, audience) }],
+      response_format: { type: 'json_object' },
+      temperature: 0.7,
+    }),
+  });
 
-  if (!geminiRes.ok) {
-    const errText = await geminiRes.text();
-    console.error('[generate-questions] Gemini error:', geminiRes.status, errText.slice(0, 300));
-    return Response.json({ error: 'Gemini API error' }, { status: 502 });
+  console.log('[generate-questions] Groq status:', groqRes.status);
+
+  if (!groqRes.ok) {
+    const errText = await groqRes.text();
+    console.error('[generate-questions] Groq error:', groqRes.status, errText.slice(0, 200));
+    return Response.json({ error: 'Groq API error' }, { status: 502 });
   }
 
-  const data = await geminiRes.json() as { candidates: { content: { parts: { text: string }[] } }[] };
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]';
+  const data = await groqRes.json() as { choices: { message: { content: string } }[] };
+  const text = data?.choices?.[0]?.message?.content ?? '';
+
+  if (!text) {
+    console.error('[generate-questions] Empty response from Groq');
+    return Response.json({ error: 'Empty response' }, { status: 502 });
+  }
 
   let questions: unknown;
   try {
-    questions = JSON.parse(text);
+    const parsed = JSON.parse(text) as Record<string, unknown> | unknown[];
+    // Groq json_object mode returns an object — extract .questions array; fall back if model returns array directly
+    questions = Array.isArray(parsed)
+      ? parsed
+      : ((parsed as Record<string, unknown>).questions ?? []);
   } catch {
-    return Response.json({ error: 'Invalid JSON from Gemini' }, { status: 502 });
+    console.error('[generate-questions] JSON parse error from Groq response');
+    return Response.json({ error: 'Invalid JSON from Groq' }, { status: 502 });
   }
 
   return Response.json(questions);
