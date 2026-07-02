@@ -1,11 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ref, get } from 'firebase/database';
+import { ref, get, update, increment } from 'firebase/database';
 import { db } from '../services/firebase/config';
 import { ensureSignedIn } from '../services/firebase/authService';
 import './AdminScreen.css';
 
 // ← שנה כאן את הסיסמא
 const ADMIN_PIN = '9919';
+
+function topicToKey(topic: string): string {
+  return topic.trim().replace(/[.#$[\]/]/g, '-').replace(/\s+/g, '_').slice(0, 100);
+}
 
 interface GameStat {
   id: string;
@@ -64,6 +68,8 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
   const [period, setPeriod] = useState<Period>('all');
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -98,6 +104,48 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
   useEffect(() => {
     if (unlocked) void loadData();
   }, [unlocked, loadData]);
+
+  const handleBackfill = useCallback(async () => {
+    setBackfilling(true);
+    setBackfillResult(null);
+    try {
+      await ensureSignedIn();
+      const gamesSnap = await get(ref(db, 'games'));
+      const gamesData = gamesSnap.val() as Record<string, { topic?: string }> | null;
+
+      if (!gamesData) {
+        setBackfillResult('לא נמצאו משחקים פעילים לסריקה');
+        return;
+      }
+
+      const topicCounts: Record<string, { topic: string; count: number }> = {};
+      Object.values(gamesData).forEach((game) => {
+        if (!game.topic) return;
+        const key = topicToKey(game.topic);
+        if (!topicCounts[key]) topicCounts[key] = { topic: game.topic.trim(), count: 0 };
+        topicCounts[key].count++;
+      });
+
+      const updates: Record<string, unknown> = {};
+      const now = Date.now();
+      Object.entries(topicCounts).forEach(([key, { topic, count }]) => {
+        updates[`topicStats/${key}/topic`] = topic;
+        updates[`topicStats/${key}/count`] = increment(count);
+        updates[`topicStats/${key}/lastUsedAt`] = now;
+      });
+
+      if (Object.keys(updates).length > 0) await update(ref(db), updates);
+
+      const gameCount = Object.keys(gamesData).length;
+      const topicCount = Object.keys(topicCounts).length;
+      setBackfillResult(`✓ נסרקו ${gameCount} משחקים — נמצאו ${topicCount} נושאים`);
+      void loadData();
+    } catch (e) {
+      setBackfillResult(`שגיאה: ${e instanceof Error ? e.message : 'נסה שוב'}`);
+    } finally {
+      setBackfilling(false);
+    }
+  }, [loadData]);
 
   function handlePinSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -199,6 +247,21 @@ export function AdminScreen({ onBack }: AdminScreenProps) {
                 <span className="admin-stat__num">{avgParticipants}</span>
                 <span className="admin-stat__label">ממוצע/משחק</span>
               </div>
+            </div>
+
+            <div className="admin-backfill">
+              <button
+                className="admin-backfill__btn"
+                onClick={() => void handleBackfill()}
+                disabled={backfilling}
+              >
+                {backfilling ? '⏳ סורק...' : '🔍 סרוק משחקים קיימים'}
+              </button>
+              {backfillResult && (
+                <span className={`admin-backfill__result ${backfillResult.startsWith('שגיאה') ? 'admin-backfill__result--error' : ''}`}>
+                  {backfillResult}
+                </span>
+              )}
             </div>
 
             <section className="admin-section">

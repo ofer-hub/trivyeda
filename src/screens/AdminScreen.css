@@ -266,6 +266,50 @@
   text-align: center;
 }
 
+/* ── Backfill ── */
+
+.admin-backfill {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-backfill__btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(180, 200, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.admin-backfill__btn:hover:not(:disabled) {
+  border-color: rgba(0, 229, 255, 0.4);
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.06);
+}
+
+.admin-backfill__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.admin-backfill__result {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #86efac;
+}
+
+.admin-backfill__result--error {
+  color: #f87171;
+}
+
 /* ── Section ── */
 
 .admin-section {
