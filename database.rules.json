@@ -17,7 +17,7 @@
           "$participantId": {
             // משתתף יכול לכתוב רק לעצמו (ורק עם isHost=false).
             // מנהל המשחק יכול לכתוב לכל משתתף (לצורך demo ועדכון ניקוד).
-            ".write": "auth != null && (($participantId === auth.uid && !newData.child('isHost').val()) || root.child('games/' + $gameId + '/hostUserId').val() === auth.uid)"
+            ".write": "auth != null && (($participantId === auth.uid && newData.child('isHost').val() != true) || root.child('games/' + $gameId + '/hostUserId').val() === auth.uid)"
           }
         },
 
@@ -49,6 +49,16 @@
     "gameCodes": {
       // קודי משחק: כל משתמש מזוהה יכול לקרוא (לחיפוש gameId לפי קוד).
       ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    "gameStats": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+
+    "topicStats": {
+      ".read": true,
       ".write": "auth != null"
     }
   }
