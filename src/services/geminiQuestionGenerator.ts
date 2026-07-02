@@ -13,10 +13,18 @@ export const geminiQuestionGenerator: QuestionGenerator = {
 
       if (!res.ok) throw new Error(`API error ${res.status}`);
 
-      const data = await res.json() as { questions: Array<Omit<QuestionFull, 'id'>>; suggestedTopic?: string };
-      const questions = data.questions.map((q, i) => ({ ...q, id: `ai-${Date.now()}-${i}` }));
+      const data = await res.json() as { questions: Array<Omit<QuestionFull, 'id'>> | null; suggestedTopic?: string };
+      const rawQuestions = Array.isArray(data?.questions) ? data.questions : [];
 
-      return { questions, suggestedTopic: data.suggestedTopic };
+      if (rawQuestions.length === 0) {
+        if (data?.suggestedTopic) {
+          return { questions: [], suggestedTopic: data.suggestedTopic };
+        }
+        return { questions: getDemoQuestions(topic, count) };
+      }
+
+      const questions = rawQuestions.map((q, i) => ({ ...q, id: `ai-${Date.now()}-${i}` }));
+      return { questions, suggestedTopic: data?.suggestedTopic };
     } catch {
       return { questions: getDemoQuestions(topic, count) };
     }
