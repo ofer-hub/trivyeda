@@ -14,22 +14,27 @@ const AUDIENCE_LABELS: Record<string, string> = {
   family: 'משפחה (מגוון גילאים)',
 };
 
-function buildPrompt(topic: string, count: number, difficulty: string, audience: string): string {
-  return `אתה יוצר שאלות טריוויה בעברית לחידון קבוצתי בסגנון Kahoot.
+const SYSTEM_PROMPT = `אתה מומחה טריוויה שמכין שאלות לחידון קבוצתי בסגנון Kahoot בעברית.
 
-צור בדיוק ${count} שאלות על הנושא: "${topic}"
+החידון מיועד לנושאים מגוונים לחלוטין — כולל נושאים איזוטריים, נישתיים, תרבותיים, היסטוריים, טכניים, מוזרים ולא מיינסטרימיים.
+
+כללים מחייבים:
+• קבל כל נושא ברצינות, גם אם הוא יוצא דופן, נישתי או לא מוכר.
+• אם הנושא צר מדי — שאל על מושגים מרכזיים, היסטוריה, דמויות, מקומות, חפצים, אירועים או הקשר תרבותי/טכני סמוך.
+• אל תמציא עובדות. אם אינך בטוח בעובדה — אל תשתמש בה. הרחב לנושא קרוב ואמין, או החזר פחות שאלות.
+• לכל שאלה תשובה נכונה אחת ברורה בלבד.
+• המסיחים (תשובות שגויות) חייבים להיות שגויים בוודאות — לא רק פחות נכונים מהתשובה הנכונה.
+• הימנע משאלות על מידע שמשתנה לאורך זמן (שיאים עדכניים, בעלי תפקידים נוכחיים וכו׳).
+• עברית טבעית וברורה. שאלות ותשובות קצרות ככל האפשר.
+
+פורמט תגובה — JSON בלבד, ללא Markdown, ללא הסברים, ללא טקסט לפני ואחרי ה-JSON.`;
+
+function buildUserPrompt(topic: string, count: number, difficulty: string, audience: string): string {
+  return `צור בדיוק ${count} שאלות טריוויה על הנושא: "${topic}"
 רמת קושי: ${DIFFICULTY_LABELS[difficulty] ?? difficulty}
 קהל יעד: ${AUDIENCE_LABELS[audience] ?? audience}
 
-דרישות:
-- כל שאלה חייבת להיות עובדתית ומדויקת
-- כל שאלה כוללת בדיוק 4 תשובות אפשריות
-- התשובות השגויות (הסחות דעת) צריכות להיות סבירות אך לא נכונות
-- ההסבר יהיה קצר (משפט אחד עד שניים)
-- אל תחזור על שאלות דומות
-- הכל בעברית בלבד
-
-החזר JSON תקין בלבד, ללא כל טקסט נוסף, במבנה הזה:
+החזר את הפורמט הזה בדיוק:
 {
   "questions": [
     {
@@ -40,6 +45,40 @@ function buildPrompt(topic: string, count: number, difficulty: string, audience:
     }
   ]
 }`;
+}
+
+interface RawQuestion {
+  question: string;
+  answers: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+function norm(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function isValidQuestion(q: unknown): q is RawQuestion {
+  if (!q || typeof q !== 'object') return false;
+  const obj = q as Record<string, unknown>;
+  if (typeof obj.question !== 'string' || obj.question.trim().length === 0 || obj.question.length > 300) return false;
+  if (!Array.isArray(obj.answers) || obj.answers.length !== 4) return false;
+  if (!(obj.answers as unknown[]).every((a) => typeof a === 'string' && a.trim().length > 0 && (a as string).length <= 200)) return false;
+  const ci = obj.correctIndex;
+  if (typeof ci !== 'number' || !Number.isInteger(ci) || ci < 0 || ci > 3) return false;
+  if (new Set((obj.answers as string[]).map(norm)).size !== 4) return false;
+  if (typeof obj.explanation !== 'string') return false;
+  return true;
+}
+
+function deduplicateQuestions(questions: RawQuestion[]): RawQuestion[] {
+  const seen = new Set<string>();
+  return questions.filter((q) => {
+    const key = norm(q.question);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -71,7 +110,10 @@ export default async function handler(req: Request): Promise<Response> {
     },
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'user', content: buildPrompt(topic, count, difficulty, audience) }],
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: buildUserPrompt(topic, count, difficulty, audience) },
+      ],
       response_format: { type: 'json_object' },
       temperature: 0.7,
     }),
@@ -93,17 +135,19 @@ export default async function handler(req: Request): Promise<Response> {
     return Response.json({ error: 'Empty response' }, { status: 502 });
   }
 
-  let questions: unknown;
+  let questions: RawQuestion[];
   try {
     const parsed = JSON.parse(text) as Record<string, unknown> | unknown[];
-    // Groq json_object mode returns an object — extract .questions array; fall back if model returns array directly
-    questions = Array.isArray(parsed)
+    const rawArray = Array.isArray(parsed)
       ? parsed
       : ((parsed as Record<string, unknown>).questions ?? []);
+    const valid = (rawArray as unknown[]).filter(isValidQuestion);
+    questions = deduplicateQuestions(valid);
   } catch {
-    console.error('[generate-questions] JSON parse error from Groq response');
+    console.error('[generate-questions] JSON parse error');
     return Response.json({ error: 'Invalid JSON from Groq' }, { status: 502 });
   }
 
+  console.log('[generate-questions] returning', questions.length, 'valid questions of', count, 'requested');
   return Response.json(questions);
 }

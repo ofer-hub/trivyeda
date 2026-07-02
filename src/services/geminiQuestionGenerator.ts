@@ -14,9 +14,15 @@ export const geminiQuestionGenerator: QuestionGenerator = {
       if (!res.ok) throw new Error(`API error ${res.status}`);
 
       const raw = await res.json() as Array<Omit<QuestionFull, 'id'>>;
-      return raw.map((q, i) => ({ ...q, id: `gemini-${Date.now()}-${i}` }));
+      const aiQuestions = raw.map((q, i) => ({ ...q, id: `ai-${Date.now()}-${i}` }));
+
+      if (aiQuestions.length >= count) return aiQuestions;
+
+      // Partial fallback: fill missing slots with demo questions
+      const missing = count - aiQuestions.length;
+      const demo = getDemoQuestions(topic, missing).slice(0, missing);
+      return [...aiQuestions, ...demo];
     } catch {
-      // fallback לשאלות demo אם Gemini נכשל
       return getDemoQuestions(topic, count);
     }
   },
