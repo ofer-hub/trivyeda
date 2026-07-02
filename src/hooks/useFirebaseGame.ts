@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ref, set, get, update, onValue, remove } from 'firebase/database';
+import { ref, set, get, update, onValue, remove, increment } from 'firebase/database';
 import { db } from '../services/firebase/config';
 import { ensureSignedIn, onAuthChange } from '../services/firebase/authService';
 import { activeQuestionGenerator } from '../services/questionGenerator';
@@ -34,6 +34,10 @@ const DEFAULT_SETTINGS: GameSettings = {
   audience: 'family',
   questionAdvanceMode: 'manual',
 };
+
+function topicToKey(topic: string): string {
+  return topic.trim().replace(/[.#$[\]/]/g, '-').replace(/\s+/g, '_').slice(0, 100);
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildQuestions(questionsPublic: any, answersPrivate: any): QuestionFull[] {
@@ -230,9 +234,13 @@ export function useFirebaseGame() {
           participants: { [uid]: hostParticipant },
         };
 
+        const topicKey = topicToKey(topic);
         await update(ref(db), {
           [`games/${gameId}`]: gameData,
           [`gameCodes/${joinCode}`]: { gameId },
+          [`topicStats/${topicKey}/topic`]: topic.trim(),
+          [`topicStats/${topicKey}/lastUsedAt`]: Date.now(),
+          [`topicStats/${topicKey}/count`]: increment(1),
         });
 
         // Update ref immediately — don't wait for the useEffect to sync state→ref
@@ -548,10 +556,23 @@ export function useFirebaseGame() {
       listenerUnsubRef.current = null;
     }
 
-    // Delete the entire game node from Firebase — removes all avatarDataUrls and game data.
-    // Called when host clicks "play again", "new game", or "home" from GameOverScreen.
     const gid = currentGameIdRef.current;
     const jc = joinCodeRef.current;
+
+    // Persist a lightweight analytics summary before deleting the game node
+    if (gid && game) {
+      void set(ref(db, `gameStats/${gid}`), {
+        createdAt: game.createdAt,
+        startedAt: game.startedAt,
+        finishedAt: game.finishedAt ?? Date.now(),
+        topic: game.topic,
+        participantCount: Object.values(game.participants).length,
+        questionCount: game.settings.questionCount,
+      });
+    }
+
+    // Delete the entire game node from Firebase — removes all avatarDataUrls and game data.
+    // Called when host clicks "play again", "new game", or "home" from GameOverScreen.
     if (gid) void remove(ref(db, `games/${gid}`));
     if (jc) void remove(ref(db, `gameCodes/${jc}`));
 
@@ -563,7 +584,7 @@ export function useFirebaseGame() {
     sessionStorage.removeItem(SS_USER_ID);
     setGame(null);
     setError(null);
-  }, []);
+  }, [game]);
 
   // ---- setStatus (utility — host only) ----
   const setStatus = useCallback(async (status: GameStatus) => {
