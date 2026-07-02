@@ -36,7 +36,7 @@ export function RevealScreen({
     else result = 'wrong';
     return getEncouragement(result, myParticipant.nickname);
   });
-  const [countdown, setCountdown] = useState(4);
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     if (!autoAdvance) return;
@@ -69,8 +69,8 @@ export function RevealScreen({
         <span className="reveal-question-num">
           שאלה {game.currentQuestionIndex + 1}/{game.questions.length}
         </span>
-        {autoAdvance && (
-          <span className="reveal-countdown">עוברים בעוד {countdown}...</span>
+        {autoAdvance && countdown > 0 && (
+          <span className="reveal-countdown">📊 דירוג בעוד {countdown}...</span>
         )}
       </div>
 
@@ -125,8 +125,8 @@ export function RevealScreen({
 
         {isHost && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
-            <button className="btn btn--primary btn--xl reveal-next-btn" onClick={onNext}>
-              {isLastQuestion ? '🏆 ראה דירוג סופי' : '📊 ראה דירוג'}
+            <button className="btn btn--ghost btn--sm" onClick={onNext}>
+              {isLastQuestion ? '🏆 עבור לדירוג סופי' : '⏭ דלג לדירוג'}
             </button>
             <button className="btn btn--danger btn--sm" onClick={onStopGame}>
               ✕ עצור משחק

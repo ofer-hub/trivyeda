@@ -30,8 +30,10 @@ export function QuestionScreen({ game, currentUserId, onAnswer, onTimeUp, isHost
     questionStartRef.current = Date.now();
   }, [game.currentQuestionIndex]);
 
-  const totalParticipants = Object.values(game.participants).length;
-  const totalAnswered = Object.values(game.participants).filter((p) => p.lastAnswer !== null).length;
+  const allParticipants = Object.values(game.participants);
+  const totalParticipants = allParticipants.length;
+  const totalAnswered = allParticipants.filter((p) => p.lastAnswer !== null).length;
+  const unansweredParticipants = allParticipants.filter((p) => p.lastAnswer === null);
 
   function getButtonState(index: number) {
     if (!hasAnswered) return 'idle';
@@ -87,7 +89,18 @@ export function QuestionScreen({ game, currentUserId, onAnswer, onTimeUp, isHost
           ))}
         </div>
 
-        {hasAnswered && (
+        {unansweredParticipants.length > 0 && (
+          <div className="unanswered-panel">
+            <span className="unanswered-panel__label">עדיין לא ענו:</span>
+            <div className="unanswered-panel__chips">
+              {unansweredParticipants.map((p) => (
+                <span key={p.id} className="unanswered-chip">{p.nickname}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {hasAnswered && unansweredParticipants.length > 0 && (
           <div className="answered-feedback">
             <span>✅ תשובתך נרשמה! מחכים לשאר המשתתפים...</span>
           </div>

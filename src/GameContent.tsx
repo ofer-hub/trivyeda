@@ -69,6 +69,12 @@ export function GameContent({
   const gameQuestionIndex = game?.currentQuestionIndex;
   const gameQuestionCount = game?.questions.length ?? 0;
 
+  const gameParticipants = Object.values(game?.participants ?? {});
+  const gameAllAnswered =
+    gameStatus === 'question' &&
+    gameParticipants.length > 0 &&
+    gameParticipants.every((p) => p.lastAnswer !== null);
+
   useEffect(() => {
     return () => {
       if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
@@ -94,16 +100,25 @@ export function GameContent({
     }
   }, [screen, gameStatus]);
 
-  // Auto-advance: reveal → leaderboard (host only)
+  // Auto-reveal: when all participants answered, reveal immediately (500ms grace)
   useEffect(() => {
-    if (!game || gameStatus !== 'reveal' || !isAutoAdvance || !isHost) return;
-    autoAdvanceTimerRef.current = setTimeout(() => {
-      void showLeaderboard();
-    }, 4000);
+    if (!gameAllAnswered || !isHost) return;
+    autoAdvanceTimerRef.current = setTimeout(withPendingGuard(() => revealAnswer()), 500);
     return () => {
       if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
     };
-  }, [gameId, gameStatus, gameQuestionIndex, isAutoAdvance, isHost, showLeaderboard, game]);
+  }, [gameAllAnswered, isHost, revealAnswer]);
+
+  // Auto-advance: reveal → leaderboard after 3s (always, for neon display)
+  useEffect(() => {
+    if (!game || gameStatus !== 'reveal' || !isHost) return;
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      void showLeaderboard();
+    }, 3000);
+    return () => {
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+    };
+  }, [gameId, gameStatus, gameQuestionIndex, isHost, showLeaderboard, game]);
 
   // Auto-advance: leaderboard → next question (host only)
   useEffect(() => {
@@ -306,7 +321,7 @@ export function GameContent({
         onNext={handleRevealNext}
         isLastQuestion={isLast}
         isHost={isHost}
-        autoAdvance={isAutoAdvance && isHost}
+        autoAdvance={isHost}
         onStopGame={handleStopGame}
       />
     );
