@@ -2,5 +2,8 @@
   "database": {
     "rules": "database.rules.json",
     "instance": "trivyeda-default-rtdb"
+  },
+  "firestore": {
+    "rules": "firestore.rules"
   }
 }
