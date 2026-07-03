@@ -275,7 +275,7 @@ export function useFirebaseGame() {
 
         return localGame;
       } catch (err) {
-        setError('שגיאה ביצירת המשחק. אנא נסה שנית.');
+        setError('יש קצת עומס כרגע 🙈 נסה שוב עוד כמה שניות.');
         throw err;
       } finally {
         setIsLoading(false);

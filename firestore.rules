@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isHostOf(gameId) {
+      return get(/databases/$(database)/documents/games/$(gameId)).data.hostUserId
+        == request.auth.uid;
+    }
+
+    function gameStatusIs(gameId, statuses) {
+      return get(/databases/$(database)/documents/games/$(gameId)).data.status
+        in statuses;
+    }
+
+    // ── gameCodes ─────────────────────────────────────────────────────────────
+    // Any signed-in user can look up a code to find a gameId.
+    // Only the host of the associated game may delete the code entry.
+    match /gameCodes/{code} {
+      allow read:   if isSignedIn();
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() && isHostOf(resource.data.gameId);
+    }
+
+    // ── games ─────────────────────────────────────────────────────────────────
+    match /games/{gameId} {
+      // Any authenticated user can read a game they know the ID of.
+      allow read: if isSignedIn();
+
+      // Only the creator may create a game, and they must set themselves as host.
+      allow create: if isSignedIn()
+        && request.resource.data.hostUserId == request.auth.uid;
+
+      // Only the host may update game-level fields (status, currentQuestionIndex…).
+      allow update: if isSignedIn() && isHostOf(gameId);
+
+      // Only the host may delete the game document.
+      allow delete: if isSignedIn() && isHostOf(gameId);
+
+      // ── participants ────────────────────────────────────────────────────────
+      match /participants/{uid} {
+        allow read: if isSignedIn();
+
+        allow create: if isSignedIn() && (
+          // A real participant creates only their own doc and cannot be host.
+          (request.auth.uid == uid
+            && request.resource.data.isHost == false
+            && request.resource.data.nickname.size() <= 30)
+          // The host may create bot/demo participant docs with any ID.
+          || isHostOf(gameId)
+        );
+
+        allow update: if isSignedIn() && (
+          // A participant may only update their own lastAnswer field.
+          (request.auth.uid == uid
+            && resource.data.isHost == false
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['lastAnswer']))
+          // The host may update any field (scoring, bots, cleanup).
+          || isHostOf(gameId)
+        );
+
+        // Only the host cleans up participant docs.
+        allow delete: if isSignedIn() && isHostOf(gameId);
+      }
+
+      // ── questionsPublic ─────────────────────────────────────────────────────
+      // Written once by host at creation; readable by anyone in the game.
+      match /questionsPublic/{index} {
+        allow read:  if isSignedIn();
+        allow write: if isSignedIn() && isHostOf(gameId);
+      }
+
+      // ── answersPrivate ──────────────────────────────────────────────────────
+      // Contains correctIndex and explanation.
+      // Host may always read. Participants may read only AFTER reveal.
+      match /answersPrivate/{index} {
+        allow read: if isSignedIn() && (
+          isHostOf(gameId)
+          || gameStatusIs(gameId, ['reveal', 'leaderboard', 'finished'])
+        );
+        allow write: if isSignedIn() && isHostOf(gameId);
+      }
+    }
+
+    // ── gameStats ─────────────────────────────────────────────────────────────
+    // Written by host at game end; publicly readable for the admin dashboard.
+    match /gameStats/{gameId} {
+      allow read:  if true;
+      allow write: if isSignedIn();
+    }
+
+    // ── topicStats ────────────────────────────────────────────────────────────
+    // Incremented on game creation; publicly readable for the admin dashboard.
+    match /topicStats/{key} {
+      allow read:  if true;
+      allow write: if isSignedIn();
+    }
+  }
+}
