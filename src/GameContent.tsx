@@ -56,7 +56,6 @@ export function GameContent({
   getLeaderboard,
 }: GameHookProps) {
   const [screen, setScreen] = useState<AppScreen>('home');
-  const [selectedTopic, setSelectedTopic] = useState('');
   const [hostNickname, setHostNickname] = useState('');
   const [hostAvatarUrl, setHostAvatarUrl] = useState<string | undefined>(undefined);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -146,11 +145,9 @@ export function GameContent({
     };
   }
 
-  async function handleCreateGame(topic: string, settings: Partial<GameSettings>, nickname?: string, avatarDataUrl?: string) {
-    if (nickname !== undefined) setHostNickname(nickname);
-    if (avatarDataUrl !== undefined) setHostAvatarUrl(avatarDataUrl);
+  async function handleCreateGame(topic: string, settings: Partial<GameSettings>) {
     try {
-      await createGame(topic, settings, nickname ?? hostNickname, avatarDataUrl ?? hostAvatarUrl);
+      await createGame(topic, settings, hostNickname, hostAvatarUrl);
       setScreen('waiting');
     } catch {
       // error shown via hook's error state
@@ -203,7 +200,6 @@ export function GameContent({
   async function handleBroaderTopic(topic: string) {
     const settings = game ? { ...game.settings } : {};
     resetGame();
-    setSelectedTopic('');
     await handleCreateGame(topic, settings);
   }
 
@@ -217,13 +213,11 @@ export function GameContent({
 
   function handleNewGame() {
     resetGame();
-    setSelectedTopic('');
     setScreen('create');
   }
 
   function handleHome() {
     resetGame();
-    setSelectedTopic('');
     setScreen('home');
   }
 
@@ -236,11 +230,15 @@ export function GameContent({
   if (screen === 'home') {
     return (
       <HomeScreen
-        onCreateGame={() => setScreen('create')}
-        onJoinGame={() => setScreen('join')}
-        onSelectTopic={(topic) => {
-          setSelectedTopic(topic);
+        onCreateGame={(nickname, avatarDataUrl) => {
+          setHostNickname(nickname);
+          if (avatarDataUrl) setHostAvatarUrl(avatarDataUrl);
           setScreen('create');
+        }}
+        onJoinGame={(nickname, avatarDataUrl) => {
+          setHostNickname(nickname);
+          if (avatarDataUrl) setHostAvatarUrl(avatarDataUrl);
+          setScreen('join');
         }}
         onAdmin={() => setScreen('admin')}
       />
@@ -250,12 +248,8 @@ export function GameContent({
   if (screen === 'create') {
     return (
       <CreateGameScreen
-        initialTopic={selectedTopic}
         onCreateGame={handleCreateGame}
-        onBack={() => {
-          setScreen('home');
-          setSelectedTopic('');
-        }}
+        onBack={() => setScreen('home')}
         isLoading={isLoading}
         error={error}
       />
@@ -269,6 +263,8 @@ export function GameContent({
         onBack={() => setScreen('home')}
         error={error}
         isLoading={isLoading}
+        initialNickname={hostNickname}
+        initialAvatarDataUrl={hostAvatarUrl}
       />
     );
   }
