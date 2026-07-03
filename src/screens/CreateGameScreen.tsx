@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Logo } from '../components/Logo';
 import { checkTopic } from '../services/topicChecker';
-import { processAvatarImage } from '../utils/imageUtils';
+import { TOPIC_CATEGORIES } from '../data/topics';
 import type { GameSettings, TopicCheck, Difficulty, Audience, QuestionAdvanceMode } from '../types/game';
 import './CreateGameScreen.css';
 
 interface CreateGameScreenProps {
   initialTopic?: string;
-  onCreateGame: (topic: string, settings: Partial<GameSettings>, hostNickname: string, hostAvatarDataUrl?: string) => void;
+  onCreateGame: (topic: string, settings: Partial<GameSettings>) => void;
   onBack: () => void;
   isLoading: boolean;
   error?: string | null;
@@ -29,24 +29,26 @@ export function CreateGameScreen({
   error,
 }: CreateGameScreenProps) {
   const [topic, setTopic] = useState(initialTopic);
-  const [hostNickname, setHostNickname] = useState('');
-  const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
-  const [photoError, setPhotoError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState(defaultSettings);
   const [topicCheck, setTopicCheck] = useState<TopicCheck | null>(null);
   const [showTopicWarning, setShowTopicWarning] = useState(false);
+  const [showPopularTopics, setShowPopularTopics] = useState(false);
 
   useEffect(() => {
-    if (initialTopic) {
-      setTopic(initialTopic);
-    }
+    if (initialTopic) setTopic(initialTopic);
   }, [initialTopic]);
 
   function handleTopicChange(value: string) {
     setTopic(value);
     setTopicCheck(null);
     setShowTopicWarning(false);
+  }
+
+  function handleSelectPopularTopic(label: string) {
+    setTopic(label);
+    setTopicCheck(null);
+    setShowTopicWarning(false);
+    setShowPopularTopics(false);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -67,20 +69,7 @@ export function CreateGameScreen({
       return;
     }
 
-    onCreateGame(trimmed, settings, hostNickname.trim(), avatarDataUrl ?? undefined);
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotoError(null);
-    const result = await processAvatarImage(file);
-    if (result) {
-      setAvatarDataUrl(result);
-    } else {
-      setPhotoError('התמונה גדולה מדי. אנא בחר תמונה קטנה יותר.');
-    }
-    e.target.value = '';
+    onCreateGame(trimmed, settings);
   }
 
   function handleUseSuggestedTopic() {
@@ -95,7 +84,7 @@ export function CreateGameScreen({
 
   function handleContinueOriginal() {
     if (!topicCheck) return;
-    onCreateGame(topic.trim(), settings, hostNickname.trim(), avatarDataUrl ?? undefined);
+    onCreateGame(topic.trim(), settings);
   }
 
   function handleChangeTopic() {
@@ -160,61 +149,44 @@ export function CreateGameScreen({
           </div>
         ) : (
           <form className="create-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">
-                השם שלך
-                <span className="form-label-optional"> (אופציונלי)</span>
-              </label>
-              <div className="host-identity">
-                <button
-                  type="button"
-                  className="avatar-pick"
-                  onClick={() => fileInputRef.current?.click()}
-                  title="העלה תמונת פרופיל"
-                >
-                  {avatarDataUrl
-                    ? <img src={avatarDataUrl} className="avatar-pick__img" alt="תמונת פרופיל" />
-                    : <span className="avatar-pick__icon">📷</span>
-                  }
-                </button>
-                <input
-                  className="form-input"
-                  type="text"
-                  value={hostNickname}
-                  onChange={(e) => setHostNickname(e.target.value)}
-                  placeholder="לדוגמה: דני, אמא, קבוצה א׳..."
-                  maxLength={20}
-                />
-              </div>
-              {avatarDataUrl && (
-                <button type="button" className="photo-preview__remove" onClick={() => setAvatarDataUrl(null)}>
-                  ✕ הסר תמונה
-                </button>
-              )}
-              {photoError && <p className="photo-error">{photoError}</p>}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-              />
-            </div>
 
+            {/* Topic — hero field */}
             <div className="form-group topic-group">
               <label className="form-label topic-label">
                 נושא המשחק
-                <span className="topic-label__sub">היסטוריה, מדע, ספורט, סדרות, מוזיקה... כמעט הכל ✨</span>
               </label>
               <input
                 className="form-input form-input--topic"
                 type="text"
                 value={topic}
                 onChange={(e) => handleTopicChange(e.target.value)}
-                placeholder="כל נושא שמעניין אותך"
+                placeholder="זרוק נושא שעולה לך לראש..."
                 required
                 autoFocus
               />
+              <button
+                type="button"
+                className={`popular-topics-btn ${showPopularTopics ? 'popular-topics-btn--open' : ''}`}
+                onClick={() => setShowPopularTopics((v) => !v)}
+              >
+                🏷️ נושאים פופולריים {showPopularTopics ? '▲' : '▼'}
+              </button>
+              {showPopularTopics && (
+                <div className="popular-topics-grid">
+                  {TOPIC_CATEGORIES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className="popular-topic-chip"
+                      style={{ '--topic-color': t.color } as React.CSSProperties}
+                      onClick={() => handleSelectPopularTopic(t.label)}
+                    >
+                      <span>{t.emoji}</span>
+                      <span>{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="form-row">

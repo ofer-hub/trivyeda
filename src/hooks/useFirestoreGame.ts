@@ -156,6 +156,8 @@ export function useFirestoreGame() {
       if (typeof data.questionStartedAt === 'number') {
         questionStartedAtRef.current = data.questionStartedAt;
       }
+      // Keep joinCodeRef in sync so resetGame can delete gameCodes even after page refresh
+      if (data.joinCode) joinCodeRef.current = data.joinCode;
 
       // For participants: load correctIndex from answersPrivate when reveal becomes active
       const status = data.status;
@@ -431,11 +433,12 @@ export function useFirestoreGame() {
         sessionStorage.setItem(SS_GAME_ID, gameId);
         sessionStorage.setItem(SS_USER_ID, uid);
 
-        // Set initial state immediately
+        // Set initial state immediately so WaitingRoom renders without flash
         gameDocDataRef.current = { ...gameData, id: gameId };
         participantsMapRef.current = {
           [uid]: buildParticipant(uid, participantData),
         };
+        rebuildAndSetGame();
 
         attachListeners(gameId);
       } catch (err) {
@@ -552,7 +555,6 @@ export function useFirestoreGame() {
     const batch = writeBatch(fsdb);
 
     Object.values(game.participants)
-      .filter((p) => !p.isHost)
       .forEach((p) => {
         const ans = p.lastAnswer;
         const updates: Record<string, unknown> = {};

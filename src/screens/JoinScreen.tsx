@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { Logo } from '../components/Logo';
-import { PlayerAvatar } from '../components/PlayerAvatar';
 import { processAvatarImage } from '../utils/imageUtils';
 import './JoinScreen.css';
 
@@ -8,6 +7,8 @@ interface JoinScreenProps {
   onJoin: (nickname: string, avatar: string, code: string, avatarDataUrl?: string) => void | Promise<void>;
   onBack: () => void;
   joinCode?: string;
+  initialNickname?: string;
+  initialAvatarDataUrl?: string;
   error?: string | null;
   isLoading?: boolean;
 }
@@ -16,12 +17,14 @@ export function JoinScreen({
   onJoin,
   onBack,
   joinCode = '',
+  initialNickname = '',
+  initialAvatarDataUrl,
   error,
   isLoading = false,
 }: JoinScreenProps) {
   const [code, setCode] = useState(joinCode);
-  const [nickname, setNickname] = useState('');
-  const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
+  const [nickname, setNickname] = useState(initialNickname);
+  const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(initialAvatarDataUrl ?? null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,11 +39,6 @@ export function JoinScreen({
       setPhotoError('התמונה גדולה מדי. אנא בחר תמונה קטנה יותר.');
     }
     e.target.value = '';
-  }
-
-  function handleRemovePhoto() {
-    setAvatarDataUrl(null);
-    setPhotoError(null);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -60,6 +58,8 @@ export function JoinScreen({
         <h1 className="join-title">הצטרפות למשחק</h1>
 
         <form className="join-form" onSubmit={handleSubmit}>
+
+          {/* Game code */}
           <div className="form-group">
             <label className="form-label">קוד משחק</label>
             <input
@@ -75,10 +75,11 @@ export function JoinScreen({
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">הכינוי שלך</label>
+          {/* Identity — same layout as HomeScreen */}
+          <div className="join-identity">
+            <p className="join-identity__label">מה שמך?</p>
             <input
-              className="form-input"
+              className="join-identity__input"
               type="text"
               value={nickname}
               onChange={(e) => setNickname(e.target.value.slice(0, 20))}
@@ -87,31 +88,23 @@ export function JoinScreen({
               required
               autoFocus
             />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">
-              תמונת פרופיל
-              <span className="form-label-optional"> (אופציונלי)</span>
-            </label>
-
-            {avatarDataUrl ? (
-              <div className="photo-preview">
-                <img src={avatarDataUrl} alt="תמונת פרופיל" className="photo-preview__img" />
-                <button type="button" className="photo-preview__remove" onClick={handleRemovePhoto}>
-                  ✕ הסר תמונה
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="photo-upload-btn"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                📷 צלם / העלה תמונה
+            <button
+              type="button"
+              className="join-avatar-pick"
+              onClick={() => fileInputRef.current?.click()}
+              title="העלה תמונת פרופיל"
+            >
+              {avatarDataUrl
+                ? <img src={avatarDataUrl} className="join-avatar-pick__img" alt="תמונה" />
+                : <span className="join-avatar-pick__icon">📷</span>
+              }
+            </button>
+            {avatarDataUrl && (
+              <button type="button" className="join-avatar-remove" onClick={() => setAvatarDataUrl(null)}>
+                ✕ הסר תמונה
               </button>
             )}
-
+            {photoError && <p className="photo-error">{photoError}</p>}
             <input
               ref={fileInputRef}
               type="file"
@@ -119,26 +112,10 @@ export function JoinScreen({
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
-
-            {photoError && <p className="photo-error">{photoError}</p>}
-            <p className="photo-privacy">
-              התמונה משמשת רק במהלך המשחק ואינה נשמרת לאחר סיום המשחק.
-            </p>
-          </div>
-
-          <div className="join-preview">
-            <PlayerAvatar
-              nickname={nickname || '?'}
-              avatarDataUrl={avatarDataUrl ?? undefined}
-              size="md"
-            />
-            <span className="join-preview__name">{nickname || 'שמך כאן'}</span>
           </div>
 
           {error && (
-            <p style={{ color: '#f87171', fontWeight: 600, fontSize: '0.9rem', textAlign: 'center', margin: 0 }}>
-              ⚠️ {error}
-            </p>
+            <p className="join-error">⚠️ {error}</p>
           )}
 
           <button

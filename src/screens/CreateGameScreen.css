@@ -152,6 +152,74 @@
   50%       { box-shadow: 0 0 18px rgba(0, 229, 255, 0.22); border-color: rgba(0, 229, 255, 0.55); }
 }
 
+/* ── Popular topics button + grid ── */
+
+.popular-topics-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: 1.5px solid rgba(0, 229, 255, 0.25);
+  border-radius: 10px;
+  color: rgba(0, 229, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0.45rem 0.9rem;
+  transition: all 0.15s ease;
+  align-self: flex-start;
+}
+
+.popular-topics-btn:hover,
+.popular-topics-btn--open {
+  background: rgba(0, 229, 255, 0.07);
+  border-color: rgba(0, 229, 255, 0.5);
+  color: #00e5ff;
+}
+
+.popular-topics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  animation: fade-in 0.2s ease;
+}
+
+@media (max-width: 480px) {
+  .popular-topics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.popular-topic-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.65rem 0.4rem;
+  border: 1.5px solid color-mix(in srgb, var(--topic-color, #6366f1) 50%, transparent);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(220, 230, 255, 0.85);
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.popular-topic-chip:hover {
+  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--topic-color, #6366f1) 12%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--topic-color, #6366f1) 35%, transparent);
+  border-color: var(--topic-color, #6366f1);
+}
+
+.popular-topic-chip span:first-child {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

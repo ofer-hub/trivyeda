@@ -19,18 +19,19 @@
 
 .go-confetti__piece {
   position: absolute;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
   top: -20px;
-  left: calc(var(--i, 0) * 4.2%);
-  background: hsl(calc(var(--i, 0) * 15), 85%, 60%);
-  animation: go-fall calc(2.2s + var(--i, 0) * 0.12s) linear calc(var(--i, 0) * 0.08s) infinite;
+  left: calc(var(--i, 0) * 3.2%);
+  background: hsl(calc(var(--i, 0) * 11), 90%, 62%);
+  animation: go-fall calc(2s + var(--i, 0) * 0.1s) linear calc(var(--i, 0) * 0.06s) infinite;
 }
 
 @keyframes go-fall {
-  0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
-  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  0%   { transform: translateY(0) rotate(0deg) scaleX(1);    opacity: 1; }
+  50%  { transform: translateY(50vh) rotate(360deg) scaleX(-1); opacity: 0.9; }
+  100% { transform: translateY(100vh) rotate(720deg) scaleX(1); opacity: 0; }
 }
 
 /* ── Layout ── */
@@ -48,7 +49,7 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1.5rem 1rem 3rem;
-  max-width: 520px;
+  max-width: 560px;
   width: 100%;
   margin: 0 auto;
   position: relative;
@@ -72,109 +73,166 @@
   font-weight: 600;
 }
 
-/* ── Place cards ── */
-.go-places {
+/* ── Podium container ── */
+.go-podium {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.5rem;
+  direction: ltr; /* podium always reads left→right: 2nd | 1st | 3rd */
 }
 
+/* ── Place card ── */
 @keyframes go-reveal {
-  from { opacity: 0; transform: translateY(28px) scale(0.93); }
-  to   { opacity: 1; transform: translateY(0)   scale(1); }
+  from { opacity: 0; transform: translateY(32px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
 
 .go-place {
+  flex: 1;
+  max-width: 175px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  animation: go-reveal 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  border-radius: 18px 18px 12px 12px;
+  overflow: hidden;
+}
+
+/* Empty upper area — same border/background as real card, no content */
+.go-place__upper--empty {
+  min-height: 130px;
+}
+
+/* Upper card content */
+.go-place__upper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1.25rem 1.5rem;
-  border-radius: 20px;
+  gap: 0.3rem;
+  padding: 0.9rem 0.5rem 0.6rem;
   text-align: center;
-  animation: go-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  width: 100%;
 }
 
-.go-place--3 {
-  border: 1.5px solid rgba(0, 229, 255, 0.3);
-  background: rgba(0, 229, 255, 0.05);
+.go-place--1 .go-place__upper {
+  background: rgba(251, 191, 36, 0.08);
+  border: 2px solid rgba(251, 191, 36, 0.55);
+  border-bottom: none;
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.18), inset 0 1px 0 rgba(251,191,36,0.2);
+  border-radius: 18px 18px 0 0;
 }
 
-.go-place--2 {
-  border: 1.5px solid rgba(192, 132, 252, 0.45);
+.go-place--2 .go-place__upper {
   background: rgba(192, 132, 252, 0.07);
-  box-shadow: 0 0 18px rgba(192, 132, 252, 0.12);
+  border: 1.5px solid rgba(192, 132, 252, 0.4);
+  border-bottom: none;
+  border-radius: 18px 18px 0 0;
 }
 
-.go-place--1 {
-  border: 2px solid rgba(251, 191, 36, 0.6);
-  background: rgba(251, 191, 36, 0.07);
-  box-shadow:
-    0 0 30px rgba(251, 191, 36, 0.2),
-    0 0 60px rgba(251, 191, 36, 0.08);
+.go-place--3 .go-place__upper {
+  background: rgba(0, 229, 255, 0.05);
+  border: 1.5px solid rgba(0, 229, 255, 0.28);
+  border-bottom: none;
+  border-radius: 18px 18px 0 0;
 }
 
 .go-place__medal {
-  font-size: 2rem;
+  font-size: 1.6rem;
   line-height: 1;
 }
 
 .go-place__crown {
-  font-size: 2.5rem;
+  font-size: 2rem;
   line-height: 1;
-  animation: go-bounce 1.2s ease infinite;
+  animation: go-bounce 1.3s ease infinite;
 }
 
 @keyframes go-bounce {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-6px); }
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50%       { transform: translateY(-5px) rotate(5deg); }
 }
 
 .go-place__name {
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   font-weight: 800;
   margin: 0;
   color: white;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .go-place__name--big {
-  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  font-size: clamp(1rem, 4vw, 1.4rem);
   background: linear-gradient(135deg, #fbbf24, #f97316);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.go-place__headline {
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.go-place__headline--big {
-  font-size: 1.1rem;
-  color: #fbbf24;
-}
-
-.go-place__tagline {
+.go-place__name--sm {
   font-size: 0.82rem;
-  color: rgba(180, 200, 255, 0.55);
+}
+
+.go-place__headline {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fbbf24;
   margin: 0;
-  font-weight: 500;
 }
 
 .go-place__score {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 900;
   color: #fbbf24;
   direction: ltr;
 }
 
 .go-place__score--big {
-  font-size: 1.15rem;
+  font-size: 1rem;
+}
+
+.go-place__score--sm {
+  font-size: 0.75rem;
+}
+
+/* ── Podium pedestal ── */
+.go-place__pedestal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  border-radius: 0 0 12px 12px;
+}
+
+.go-place__pedestal--1 {
+  height: 5.5rem;
+  color: rgba(251, 191, 36, 0.85);
+  background: linear-gradient(180deg, rgba(251,191,36,0.22) 0%, rgba(251,191,36,0.06) 100%);
+  border: 2px solid rgba(251, 191, 36, 0.55);
+  border-top: none;
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.15);
+}
+
+.go-place__pedestal--2 {
+  height: 3.5rem;
+  color: rgba(192, 132, 252, 0.8);
+  background: linear-gradient(180deg, rgba(192,132,252,0.18) 0%, rgba(192,132,252,0.05) 100%);
+  border: 1.5px solid rgba(192, 132, 252, 0.4);
+  border-top: none;
+}
+
+.go-place__pedestal--3 {
+  height: 2rem;
+  color: rgba(0, 229, 255, 0.7);
+  background: linear-gradient(180deg, rgba(0,229,255,0.12) 0%, rgba(0,229,255,0.03) 100%);
+  border: 1.5px solid rgba(0, 229, 255, 0.28);
+  border-top: none;
 }
 
 /* ── Rest table ── */
@@ -206,11 +264,12 @@
 }
 
 .go-rest__rank {
-  font-size: 0.88rem;
-  font-weight: 900;
-  color: rgba(255,255,255,0.4);
-  min-width: 24px;
-  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(180, 200, 255, 0.55);
+  min-width: 80px;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .go-rest__name {

@@ -452,18 +452,20 @@ export function useFirebaseGame() {
     const totalTimeMs = game.settings.timePerQuestion * 1000;
     const updates: Record<string, unknown> = {};
 
-    // Per-question analytics counters
-    const nonHostParticipants = Object.values(game.participants).filter((p) => !p.isHost);
+    // Per-question analytics counters (non-host only)
+    const allParticipants = Object.values(game.participants);
+    const nonHostParticipants = allParticipants.filter((p) => !p.isHost);
     let totalAnswered = 0;
     let totalCorrect = 0;
     let totalWrong = 0;
     let totalNoAnswer = 0;
 
-    nonHostParticipants.forEach((p) => {
+    allParticipants.forEach((p) => {
       const ans = p.lastAnswer;
+      const countForAnalytics = !p.isHost;
 
       if (!ans || ans.answerIndex === null) {
-        totalNoAnswer++;
+        if (countForAnalytics) totalNoAnswer++;
         updates[`games/${gid}/participants/${p.id}/lastAnswer`] = {
           answerIndex: null,
           answeredAt: null,
@@ -471,14 +473,14 @@ export function useFirebaseGame() {
           pointsEarned: 0,
         };
       } else {
-        totalAnswered++;
+        if (countForAnalytics) totalAnswered++;
         const isCorrect = ans.answerIndex === question.correctIndex;
         const elapsed = (ans.answeredAt ?? Date.now()) - questionStartedAt;
         const remaining = Math.max(0, totalTimeMs - elapsed);
         const points = calculateScore(isCorrect, remaining, totalTimeMs);
 
-        if (isCorrect) totalCorrect++;
-        else totalWrong++;
+        if (countForAnalytics && isCorrect) totalCorrect++;
+        if (countForAnalytics && !isCorrect) totalWrong++;
 
         updates[`games/${gid}/participants/${p.id}/lastAnswer`] = {
           answerIndex: ans.answerIndex,
@@ -486,7 +488,7 @@ export function useFirebaseGame() {
           isCorrect,
           pointsEarned: points,
         };
-        updates[`games/${gid}/participants/${p.id}/score`] = (p.score ?? 0) + points;
+        if (isCorrect) updates[`games/${gid}/participants/${p.id}/score`] = (p.score ?? 0) + points;
       }
     });
 

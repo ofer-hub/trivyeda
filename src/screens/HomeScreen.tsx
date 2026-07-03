@@ -1,14 +1,26 @@
-import { TOPIC_CATEGORIES } from '../data/topics';
+import { useState, useRef } from 'react';
+import { processAvatarImage } from '../utils/imageUtils';
 import './HomeScreen.css';
 
 interface HomeScreenProps {
-  onCreateGame: () => void;
-  onJoinGame: () => void;
-  onSelectTopic: (topic: string) => void;
+  onCreateGame: (nickname: string, avatarDataUrl?: string) => void;
+  onJoinGame: (nickname: string, avatarDataUrl?: string) => void;
   onAdmin: () => void;
 }
 
-export function HomeScreen({ onCreateGame, onJoinGame, onSelectTopic, onAdmin }: HomeScreenProps) {
+export function HomeScreen({ onCreateGame, onJoinGame, onAdmin }: HomeScreenProps) {
+  const [nickname, setNickname] = useState('');
+  const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const result = await processAvatarImage(file);
+    if (result) setAvatarDataUrl(result);
+    e.target.value = '';
+  }
+
   return (
     <div className="home-screen">
       <header className="home-header">
@@ -20,33 +32,57 @@ export function HomeScreen({ onCreateGame, onJoinGame, onSelectTopic, onAdmin }:
       </header>
 
       <main className="home-main">
-        <p className="home-tagline">בחרו נושא. הזמינו חברים. התחילו לשחק.</p>
-
         <div className="home-actions">
-          <button className="home-btn home-btn--create" onClick={onCreateGame}>
+          <button
+            className="home-btn home-btn--create"
+            onClick={() => onCreateGame(nickname.trim(), avatarDataUrl ?? undefined)}
+          >
             🎮 צור משחק חדש
           </button>
-          <button className="home-btn home-btn--join" onClick={onJoinGame}>
+          <button
+            className="home-btn home-btn--join"
+            onClick={() => onJoinGame(nickname.trim(), avatarDataUrl ?? undefined)}
+          >
             🙋 הצטרף למשחק
           </button>
         </div>
 
-        <section className="home-topics">
-          <h2 className="home-topics__title">נושאים פופולריים</h2>
-          <div className="home-topics__grid">
-            {TOPIC_CATEGORIES.map((topic) => (
-              <button
-                key={topic.id}
-                className="topic-card"
-                style={{ '--topic-color': topic.color } as React.CSSProperties}
-                onClick={() => onSelectTopic(topic.label)}
-              >
-                <span className="topic-card__emoji">{topic.emoji}</span>
-                <span className="topic-card__label">{topic.label}</span>
-              </button>
-            ))}
+        <div className="home-identity">
+          <p className="home-identity__label">מה שמך?</p>
+          <div className="home-identity__row">
+            <input
+              className="home-identity__input"
+              type="text"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="השם שלך (אופציונלי)"
+              maxLength={20}
+            />
+            <button
+              type="button"
+              className="home-avatar-pick"
+              onClick={() => fileInputRef.current?.click()}
+              title="העלה תמונת פרופיל"
+            >
+              {avatarDataUrl
+                ? <img src={avatarDataUrl} className="home-avatar-pick__img" alt="תמונה" />
+                : <span className="home-avatar-pick__icon">📷</span>
+              }
+            </button>
           </div>
-        </section>
+          {avatarDataUrl && (
+            <button type="button" className="home-avatar-remove" onClick={() => setAvatarDataUrl(null)}>
+              ✕ הסר תמונה
+            </button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
+        </div>
       </main>
 
       <footer className="home-footer">
